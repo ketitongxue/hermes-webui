@@ -5,26 +5,12 @@
    4 themes as CSS custom properties. One-line switch.
    ═══════════════════════════════════════════════════════════ */
 
-@font-face {
-  font-family: 'JetBrains Mono';
-  src: url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono@2.304/fonts/webfonts/JetBrainsMono-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'JetBrains Mono';
-  src: url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono@2.304/fonts/webfonts/JetBrainsMono-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-family: 'Funnel Sans', system-ui, -apple-system, sans-serif;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
 /* ── Neural Awakening (default) ─────────────────────────── */
@@ -175,9 +161,9 @@ body {
 .hud-panel-title {
   flex-shrink: 0;
   padding: 8px 14px 4px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--hud-primary);
   border-bottom: 1px solid var(--hud-border);
@@ -264,14 +250,16 @@ body {
 
 .stat-label {
   font-size: 11px;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--hud-text-dim);
   margin-top: 3px;
 }
 
 .stat-delta {
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--hud-success);
 }
 
@@ -294,7 +282,8 @@ body {
 
   .hud-panel-title {
     padding: 6px 10px 3px;
-    font-size: 10px;
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
   }
 
   .stat-value {
@@ -305,5 +294,6 @@ body {
 @media (max-width: 480px) {
   :root {
     font-size: 12px;
+    line-height: 1.45;
   }
 }

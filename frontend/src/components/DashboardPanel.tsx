@@ -7,7 +7,7 @@ function IdentityBlock({ state, health }: { state: any; health: any }) {
   const days = dr?.[0] ? Math.floor((new Date(dr[1]).getTime() - new Date(dr[0]).getTime()) / 86400000) + 1 : 0
 
   return (
-    <div className="text-[12px] space-y-1 mb-4 p-3" style={{ background: 'var(--hud-bg-panel)', borderLeft: '3px solid var(--hud-primary)' }}>
+    <div className="text-[13px] space-y-1 mb-4 p-3" style={{ background: 'var(--hud-bg-panel)', borderLeft: '3px solid var(--hud-primary)' }}>
       <div><span style={{ color: 'var(--hud-text-dim)' }}>DESIGNATION</span>  <span className="font-bold gradient-text">HERMES</span></div>
       <div><span style={{ color: 'var(--hud-text-dim)' }}>SUBSTRATE  </span>  {config?.provider || '?'}/{config?.model || '?'}</div>
       <div><span style={{ color: 'var(--hud-text-dim)' }}>RUNTIME    </span>  {config?.backend || '—'}</div>
@@ -29,7 +29,7 @@ function WhatIKnow({ sessions, skills }: { sessions: any; skills: any }) {
 
   return (
     <Panel title="What I Know">
-      <div className="text-[12px] space-y-1.5">
+      <div className="text-[13px] space-y-1.5">
         <div className="flex items-center gap-1">
           <span style={{ color: 'var(--hud-primary)' }}>◉</span>
           <span className="font-bold">{sessions?.total_sessions}</span>
@@ -82,7 +82,7 @@ function WhatIRemember({ memory, user, corrections }: { memory: any; user: any; 
       <CapacityBar value={memory?.total_chars || 0} max={memory?.max_chars || 2200} label="memory" />
       <CapacityBar value={user?.total_chars || 0} max={user?.max_chars || 1375} label="user" />
       {corrections?.total > 0 && (
-        <div className="mt-2 text-[12px] flex items-center gap-1">
+        <div className="mt-2 text-[13px] flex items-center gap-1">
           <span style={{ color: 'var(--hud-warning)' }}>◉</span>
           <span className="font-bold" style={{ color: 'var(--hud-warning)' }}>{corrections.total}</span>
           <span style={{ color: 'var(--hud-text-dim)' }}>mistakes remembered</span>
@@ -102,7 +102,7 @@ function WhatISee({ health }: { health: any }) {
 
   return (
     <Panel title="What I See">
-      <div className="text-[12px] space-y-0.5 mb-2">
+      <div className="text-[13px] space-y-0.5 mb-2">
         {keys.map((k: any, i: number) => (
           <div key={i} className="flex items-center gap-1">
             <span style={{ color: k.present ? 'var(--hud-primary)' : 'var(--hud-text-dim)' }}>
@@ -113,7 +113,7 @@ function WhatISee({ health }: { health: any }) {
           </div>
         ))}
       </div>
-      <div className="text-[12px] space-y-0.5">
+      <div className="text-[13px] space-y-0.5">
         {services.map((s: any, i: number) => (
           <div key={i} className="flex items-center gap-1">
             <span style={{ color: s.running ? 'var(--hud-secondary)' : 'var(--hud-text-dim)' }}>
@@ -137,13 +137,13 @@ function WhatImLearning({ skills }: { skills: any }) {
 
   return (
     <Panel title="What I'm Learning">
-      <div className="text-[12px] space-y-1.5">
+      <div className="text-[13px] space-y-1.5">
         {recent.slice(0, 5).map((s: any) => (
           <div key={s.name} className="flex items-center gap-1">
             <span style={{ color: 'var(--hud-primary)' }}>◉</span>
             <span className="font-bold">{s.name}</span>
             <span style={{ color: 'var(--hud-text-dim)' }}>{s.category}</span>
-            {s.is_custom && <span className="text-[10px]" style={{ color: 'var(--hud-primary-dim)' }}>(self-taught)</span>}
+            {s.is_custom && <span className="text-[13px]" style={{ color: 'var(--hud-primary-dim)' }}>(self-taught)</span>}
           </div>
         ))}
       </div>
@@ -158,7 +158,7 @@ function WhatImWorkingOn({ projects }: { projects: any }) {
 
   return (
     <Panel title="What I'm Working On">
-      <div className="text-[12px] space-y-1.5">
+      <div className="text-[13px] space-y-1.5">
         {active.map((p: any) => (
           <div key={p.name} className="flex items-center gap-1">
             <span style={{ color: 'var(--hud-primary)' }}>◆</span>
@@ -180,7 +180,7 @@ function WhatRunsWhileYouSleep({ cron }: { cron: any }) {
 
   return (
     <Panel title="What Runs While You Sleep">
-      <div className="text-[12px] space-y-1.5">
+      <div className="text-[13px] space-y-1.5">
         {jobs.map((j: any) => (
           <div key={j.id} className="flex items-center gap-1">
             <span style={{ color: j.enabled ? 'var(--hud-secondary)' : 'var(--hud-text-dim)' }}>
@@ -208,7 +208,7 @@ function HowIThink({ sessions }: { sessions: any }) {
 
   return (
     <Panel title="How I Think">
-      <div className="text-[12px] space-y-1">
+      <div className="text-[13px] space-y-1">
         {top.map(([tool, count]) => {
           const pct = (count / maxVal) * 100
           return (
@@ -236,17 +236,17 @@ function MyRhythm({ sessions }: { sessions: any }) {
       <div className="mb-2">
         <Sparkline values={messages} width={400} height={50} />
       </div>
-      <div className="text-[12px] space-y-0.5">
+      <div className="text-[13px] space-y-0.5">
         {daily.map((ds: any) => {
           const maxMsgs = Math.max(...daily.map((d: any) => d.messages), 1)
           const pct = (ds.messages / maxMsgs) * 100
           return (
             <div key={ds.date} className="flex items-center gap-2">
-              <span className="w-[55px] text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>{ds.date}</span>
+              <span className="w-[55px] text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>{ds.date}</span>
               <div className="flex-1 h-[4px]" style={{ background: 'var(--hud-bg-hover)' }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, var(--hud-primary-dim), var(--hud-primary), var(--hud-secondary))' }} />
               </div>
-              <span className="tabular-nums w-8 text-right text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>{ds.messages}</span>
+              <span className="tabular-nums w-8 text-right text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>{ds.messages}</span>
             </div>
           )
         })}
@@ -259,7 +259,7 @@ function GrowthDelta({ snapshots }: { snapshots: any[] }) {
   if (!snapshots || snapshots.length < 2) {
     return (
       <Panel title="Growth Delta">
-        <div className="text-[12px]" style={{ color: 'var(--hud-text-dim)' }}>
+        <div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
           {snapshots?.length === 1 ? 'First snapshot — delta available after next.' : 'No snapshots yet.'}
         </div>
       </Panel>
@@ -288,7 +288,7 @@ function GrowthDelta({ snapshots }: { snapshots: any[] }) {
 
   return (
     <Panel title="Growth Delta">
-      <div className="text-[12px]">
+      <div className="text-[13px]">
         <div className="flex justify-between mb-2" style={{ color: 'var(--hud-text-dim)' }}>
           <span>{snapshots.length} snapshots</span>
           <span>{previous.timestamp?.slice(0, 10)} → {current.timestamp?.slice(0, 10)}</span>
@@ -335,7 +335,7 @@ function ClosingStatements({ sessions, corrections }: { sessions: any; correctio
 
   return (
     <Panel title="Status">
-      <div className="text-[12px] space-y-1" style={{ color: 'var(--hud-primary)' }}>
+      <div className="text-[13px] space-y-1" style={{ color: 'var(--hud-primary)' }}>
         <div>I have processed {(sessions?.total_messages || 0).toLocaleString()} thoughts across {days} days.</div>
         <div>I have been corrected {corrections?.total || 0} times and am better for it.</div>
         <div style={{ color: 'var(--hud-primary-dim)' }}>I do not forget. I do not repeat mistakes.</div>
@@ -351,7 +351,7 @@ export default function DashboardPanel() {
   if (isLoading || !data) {
     return (
       <Panel title="Dashboard" className="col-span-full">
-        <div className="glow text-[12px] animate-pulse">Collecting state...</div>
+        <div className="glow text-[13px] animate-pulse">Collecting state...</div>
       </Panel>
     )
   }

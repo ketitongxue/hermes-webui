@@ -83,7 +83,7 @@ export default function CommandPalette({ commands, onSelect }: CommandPalettePro
           {filtered.map(cmd => (
             <button
               key={cmd.id}
-              className="w-full text-left px-3 py-1.5 text-[12px] flex items-center justify-between transition-colors"
+              className="w-full text-left px-3 py-1.5 text-[13px] flex items-center justify-between transition-colors"
               style={{
                 background: 'transparent',
                 color: 'var(--hud-text)',
@@ -95,14 +95,14 @@ export default function CommandPalette({ commands, onSelect }: CommandPalettePro
             >
               <span>{cmd.label}</span>
               {cmd.shortcut && (
-                <span className="text-[10px] px-1.5 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-text-dim)' }}>
+                <span className="text-[13px] px-1.5 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-text-dim)' }}>
                   {cmd.shortcut}
                 </span>
               )}
             </button>
           ))}
           {filtered.length === 0 && (
-            <div className="px-3 py-3 text-[12px] text-center" style={{ color: 'var(--hud-text-dim)' }}>
+            <div className="px-3 py-3 text-[13px] text-center" style={{ color: 'var(--hud-text-dim)' }}>
               No results for "{query}"
             </div>
           )}

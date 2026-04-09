@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from .models import DailyStats, SessionInfo, SessionsState
 from .utils import default_hermes_dir, safe_get
@@ -33,7 +36,7 @@ def _extract_tool_usage(db_path: str) -> dict[str, int]:
                 pass
         conn.close()
     except Exception:
-        pass
+        logger.debug("Could not read tool usage from state.db", exc_info=True)
     return usage
 
 
@@ -99,6 +102,7 @@ def collect_sessions(hermes_dir: str | None = None) -> SessionsState:
                     model=model,
                 ))
             except Exception:
+                logger.warning("Skipping unparseable session row", exc_info=True)
                 continue
 
         # Daily stats
@@ -123,12 +127,12 @@ def collect_sessions(hermes_dir: str | None = None) -> SessionsState:
                     tokens=safe_get(row, "tokens", 0),
                 ))
             except Exception:
+                logger.warning("Skipping unparseable daily stats row", exc_info=True)
                 continue
 
         conn.close()
-    except Exception as e:
-        # Return what we have
-        pass
+    except Exception:
+        logger.warning("Error reading sessions from state.db", exc_info=True)
 
     # Tool usage
     tool_usage = _extract_tool_usage(db_path)

@@ -39,6 +39,9 @@ Desktop.ini
 *.db-wal
 *.db-shm
 
+# Claude Code
+CLAUDE.md
+
 # Build artifacts
 backend/static/assets/
 backend/static/index.html

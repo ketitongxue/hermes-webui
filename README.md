@@ -113,35 +113,14 @@ Optional CRT scanline overlay — toggle via theme picker.
 ## Architecture
 
 ```
-backend/
-  main.py               FastAPI server, CLI entry point
-  api/                  One endpoint per data domain
-    dashboard.py        Consolidated overview narrative
-    token_costs.py      Per-model USD cost estimates
-    state.py, memory.py, sessions.py, skills.py, ...
-  api/serialize.py      Dataclass → JSON conversion
-  static/               Built frontend (served by FastAPI)
-
-frontend/
-  src/App.tsx           Layout shell, tab navigation
-  src/hooks/useApi.ts   SWR data fetching with auto-refresh
-  src/hooks/useTheme.tsx  Theme system (CSS custom properties)
-  src/lib/utils.ts      Shared formatting (time, tokens, sizes)
-  src/components/       One panel component per tab
-    DashboardPanel.tsx  Full TUI narrative (10 sections)
-    MemoryPanel.tsx     Agent + user memory entries
-    SkillsPanel.tsx     Category bar chart + skill details
-    SessionsPanel.tsx   Activity sparklines + session list
-    CronPanel.tsx       Job cards with schedule/status
-    ProjectsPanel.tsx   Activity-grouped project grid
-    HealthPanel.tsx     API keys + services
-    AgentsPanel.tsx     Live processes + recent sessions
-    ProfilesPanel.tsx   Full profile cards (20+ fields)
-    TokenCostsPanel.tsx Per-model cost breakdown
-  src/index.css         Theme variables, panel system, responsive
+React Frontend (Vite + SWR)
+    ↓ /api/* (proxied in dev)
+FastAPI Backend (Python)
+    ↓ collectors/*.py
+~/.hermes/ (agent data files)
 ```
 
-The backend imports hermes-hud's Python collectors directly — no data logic is duplicated. The frontend fetches from `/api/*` endpoints and renders panels.
+Backend collectors read directly from `~/.hermes/` and return dataclasses. The frontend fetches from `/api/*` endpoints via SWR with auto-refresh and renders one panel component per tab.
 
 ## Themes as CSS Variables
 
@@ -169,45 +148,6 @@ Each theme is 10 CSS custom properties. To add a new theme:
   --hud-gradient-end: #ff6600;
 }
 ```
-
-## Token Cost Pricing
-
-Costs are calculated from token counts using hardcoded per-model pricing. Supported models:
-
-| Provider | Model | Input | Output | Cache Read |
-|----------|-------|------:|-------:|-----------:|
-| Anthropic | Claude Opus 4 | $15/M | $75/M | $1.50/M |
-| Anthropic | Claude Sonnet 4 | $3/M | $15/M | $0.30/M |
-| Anthropic | Claude Haiku 3.5 | $0.80/M | $4/M | $0.08/M |
-| OpenAI | GPT-4o | $2.50/M | $10/M | $1.25/M |
-| OpenAI | o1 | $15/M | $60/M | $7.50/M |
-| DeepSeek | V3 | $0.27/M | $1.10/M | $0.07/M |
-| xAI | Grok 3 | $3/M | $15/M | $0.75/M |
-| Google | Gemini 2.5 Pro | $1.25/M | $10/M | $0.31/M |
-
-Models not in the table fall back to Claude Opus pricing. Local/free models are detected and priced at $0.
-
-## API Endpoints
-
-All under `/api/`:
-
-| Endpoint | Description | Refresh |
-|----------|-------------|---------|
-| `/api/dashboard` | Consolidated overview narrative | 30s |
-| `/api/token-costs` | Per-model cost estimates | 60s |
-| `/api/state` | Config, memory, sessions, skills | 30s |
-| `/api/memory` | Memory + user profile entries | 30s |
-| `/api/sessions` | Session list, daily stats, tools | 30s |
-| `/api/skills` | Skill library with categories | 60s |
-| `/api/cron` | Cron job status | 30s |
-| `/api/projects` | Git repo status | 60s |
-| `/api/health` | API keys, services | 30s |
-| `/api/profiles` | Agent profile details | 30s |
-| `/api/patterns` | Task clusters, hourly activity | 60s |
-| `/api/agents` | Live processes, recent sessions | 15s |
-| `/api/corrections` | Mistakes and lessons learned | 60s |
-| `/api/timeline` | Growth events | 30s |
-| `/api/snapshots` | Snapshot history for diffs | 60s |
 
 ## Relationship to the TUI
 

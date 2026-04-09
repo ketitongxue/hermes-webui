@@ -68,7 +68,7 @@ export default function BootScreen({ onComplete }: BootScreenProps) {
     >
       {/* ASCII logo — hidden on very narrow screens */}
       <pre
-        className="gradient-text text-[8px] sm:text-[11px] leading-tight mb-4 sm:mb-6 transition-opacity duration-300 text-center overflow-hidden"
+        className="gradient-text text-[8px] sm:text-[13px] leading-tight mb-4 sm:mb-6 transition-opacity duration-300 text-center overflow-hidden"
         style={{
           opacity: asciiVisible ? 1 : 0,
           maxWidth: '90vw',
@@ -79,7 +79,7 @@ export default function BootScreen({ onComplete }: BootScreenProps) {
       </pre>
 
       {/* Boot text */}
-      <div className="text-[12px] w-[90vw] max-w-[400px] px-4">
+      <div className="text-[13px] w-[90vw] max-w-[400px] px-4">
         {BOOT_LINES.slice(0, visibleLines).map((line, i) => (
           <div key={i} className="py-0.5" style={{
             color: line.startsWith('"') ? 'var(--hud-accent)' :
@@ -96,7 +96,7 @@ export default function BootScreen({ onComplete }: BootScreenProps) {
         ))}
       </div>
 
-      <div className="absolute bottom-6 text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>
+      <div className="absolute bottom-6 text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
         tap to skip
       </div>
     </div>

@@ -3,12 +3,45 @@ import { useApi } from '../hooks/useApi'
 import Panel from './Panel'
 import { timeAgo, formatSize } from '../lib/utils'
 
+function SkillItem({ skill, variant }: { skill: any; variant: 'category' | 'recent' }) {
+  const descLimit = variant === 'category' ? 120 : 100
+  return (
+    <div className="py-2 px-2 text-[13px]" style={{ borderLeft: '2px solid var(--hud-border)' }}>
+      <div className="flex items-center gap-2 mb-0.5">
+        <span className="font-bold" style={{ color: 'var(--hud-primary)' }}>{skill.name}</span>
+        {variant === 'recent' && (
+          <span className="text-[13px] px-1" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-text-dim)' }}>
+            {skill.category}
+          </span>
+        )}
+        {skill.is_custom && (
+          <span className="text-[13px] px-1" style={{ background: 'var(--hud-accent)', color: 'var(--hud-bg-deep)' }}>custom</span>
+        )}
+        {variant === 'category' && (
+          <span className="text-[13px] ml-auto" style={{ color: 'var(--hud-text-dim)' }}>
+            {formatSize(skill.file_size)}
+          </span>
+        )}
+      </div>
+      <div style={{ color: 'var(--hud-text-dim)' }}>
+        {skill.description?.slice(0, descLimit)}{skill.description?.length > descLimit ? '...' : ''}
+      </div>
+      <div className="text-[13px] mt-0.5" style={{ color: 'var(--hud-text-dim)' }}>
+        {variant === 'category'
+          ? `${skill.modified_at ? new Date(skill.modified_at).toLocaleDateString() : ''} · ${skill.path?.split('/').slice(-3).join('/')}`
+          : skill.modified_at ? timeAgo(skill.modified_at) : ''
+        }
+      </div>
+    </div>
+  )
+}
+
 export default function SkillsPanel() {
   const { data, isLoading } = useApi('/skills', 60000)
   const [selectedCat, setSelectedCat] = useState<string | null>(null)
 
   if (isLoading || !data) {
-    return <Panel title="Skills" className="col-span-full"><div className="glow text-[12px] animate-pulse">Scanning skill library...</div></Panel>
+    return <Panel title="Skills" className="col-span-full"><div className="glow text-[13px] animate-pulse">Scanning skill library...</div></Panel>
   }
 
   const catCounts: Record<string, number> = data.category_counts || {}
@@ -27,19 +60,19 @@ export default function SkillsPanel() {
       {/* Category overview */}
       <Panel title="Skill Library" className="col-span-1">
         <div className="flex gap-2 mb-3">
-          <span className="text-[12px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-primary)' }}>
+          <span className="text-[13px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-primary)' }}>
             {data.total} total
           </span>
-          <span className="text-[12px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-accent)' }}>
+          <span className="text-[13px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-accent)' }}>
             {data.custom_count} custom
           </span>
-          <span className="text-[12px]" style={{ color: 'var(--hud-text-dim)' }}>
+          <span className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
             {sorted.length} categories
           </span>
         </div>
 
         {/* Category bar chart — scannable at a glance */}
-        <div className="space-y-1 text-[12px]">
+        <div className="space-y-1 text-[13px]">
           {sorted.map(([cat, count]) => {
             const pct = (count / maxCount) * 100
             const isSelected = selectedCat === cat
@@ -79,27 +112,10 @@ export default function SkillsPanel() {
         <Panel title={selectedCat}>
           <div className="space-y-2">
             {catSkills.map((skill: any) => (
-              <div key={skill.name} className="py-2 px-2 text-[12px]" style={{ borderLeft: '2px solid var(--hud-border)' }}>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-bold" style={{ color: 'var(--hud-primary)' }}>{skill.name}</span>
-                  {skill.is_custom && (
-                    <span className="text-[10px] px-1" style={{ background: 'var(--hud-accent)', color: 'var(--hud-bg-deep)' }}>custom</span>
-                  )}
-                  <span className="text-[11px] ml-auto" style={{ color: 'var(--hud-text-dim)' }}>
-                    {formatSize(skill.file_size)}
-                  </span>
-                </div>
-                <div style={{ color: 'var(--hud-text-dim)' }}>
-                  {skill.description?.slice(0, 120)}{skill.description?.length > 120 ? '...' : ''}
-                </div>
-                <div className="text-[11px] mt-0.5" style={{ color: 'var(--hud-text-dim)' }}>
-                  {skill.modified_at ? new Date(skill.modified_at).toLocaleDateString() : ''}
-                  {' · '}{skill.path?.split('/').slice(-3).join('/')}
-                </div>
-              </div>
+              <SkillItem key={skill.name} skill={skill} variant="category" />
             ))}
             {catSkills.length === 0 && (
-              <div className="text-[12px]" style={{ color: 'var(--hud-text-dim)' }}>No skills in this category</div>
+              <div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>No skills in this category</div>
             )}
           </div>
         </Panel>
@@ -107,26 +123,10 @@ export default function SkillsPanel() {
         <Panel title="Recently Modified">
           <div className="space-y-2">
             {recentlyMod.map((skill: any) => (
-              <div key={skill.name} className="py-2 px-2 text-[12px]" style={{ borderLeft: '2px solid var(--hud-border)' }}>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-bold" style={{ color: 'var(--hud-primary)' }}>{skill.name}</span>
-                  <span className="text-[11px] px-1" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-text-dim)' }}>
-                    {skill.category}
-                  </span>
-                  {skill.is_custom && (
-                    <span className="text-[10px] px-1" style={{ background: 'var(--hud-accent)', color: 'var(--hud-bg-deep)' }}>custom</span>
-                  )}
-                </div>
-                <div style={{ color: 'var(--hud-text-dim)' }}>
-                  {skill.description?.slice(0, 100)}{skill.description?.length > 100 ? '...' : ''}
-                </div>
-                <div className="text-[11px] mt-0.5" style={{ color: 'var(--hud-text-dim)' }}>
-                  {skill.modified_at ? timeAgo(skill.modified_at) : ''}
-                </div>
-              </div>
+              <SkillItem key={skill.name} skill={skill} variant="recent" />
             ))}
             {recentlyMod.length === 0 && (
-              <div className="text-[12px]" style={{ color: 'var(--hud-text-dim)' }}>No recent modifications</div>
+              <div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>No recent modifications</div>
             )}
           </div>
         </Panel>
@@ -134,5 +134,3 @@ export default function SkillsPanel() {
     </>
   )
 }
-
-

@@ -3,14 +3,14 @@ import Panel from './Panel'
 
 function ProjectCard({ p }: { p: any }) {
   return (
-    <div className="p-2.5 text-[12px]"
+    <div className="p-2.5 text-[13px]"
       style={{
         background: 'var(--hud-bg-panel)',
         borderLeft: `3px solid ${p.dirty_files > 0 ? 'var(--hud-warning)' : p.is_git ? 'var(--hud-primary)' : 'var(--hud-text-dim)'}`,
       }}>
       <div className="flex items-center justify-between mb-0.5">
         <span className="font-bold" style={{ color: 'var(--hud-primary)' }}>{p.name}</span>
-        <span className="text-[10px]" style={{ color: p.dirty_files > 0 ? 'var(--hud-warning)' : 'var(--hud-success)' }}>
+        <span className="text-[13px]" style={{ color: p.dirty_files > 0 ? 'var(--hud-warning)' : 'var(--hud-success)' }}>
           {p.dirty_files > 0 ? `${p.dirty_files} dirty` : 'clean'}
         </span>
       </div>
@@ -43,25 +43,34 @@ export default function ProjectsPanel() {
   const { data, isLoading } = useApi('/projects', 60000)
 
   if (isLoading || !data) {
-    return <Panel title="Projects" className="col-span-full"><div className="glow text-[12px] animate-pulse">Loading...</div></Panel>
+    return <Panel title="Projects" className="col-span-full"><div className="glow text-[13px] animate-pulse">Loading...</div></Panel>
   }
 
   const all = data.projects || data || []
   if (!Array.isArray(all) || all.length === 0) {
-    return <Panel title="Projects" className="col-span-full"><div className="text-[12px]" style={{ color: 'var(--hud-text-dim)' }}>No projects found</div></Panel>
+    return <Panel title="Projects" className="col-span-full"><div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>No projects found</div></Panel>
   }
 
-  const gitRepos = all.filter((p: any) => p.is_git)
-  const dirtyCount = all.filter((p: any) => p.dirty_files > 0).length
-  const active = all.filter((p: any) => p.is_git && (p.activity_level === 'active'))
-  const recent = all.filter((p: any) => p.is_git && p.activity_level === 'recent')
-  const stale = all.filter((p: any) => p.is_git && p.activity_level === 'stale')
-  const noGit = all.filter((p: any) => !p.is_git)
+  const { gitRepos, active, recent, stale, noGit, dirtyCount } = all.reduce(
+    (acc: any, p: any) => {
+      if (p.is_git) {
+        acc.gitRepos.push(p)
+        if (p.activity_level === 'active') acc.active.push(p)
+        else if (p.activity_level === 'recent') acc.recent.push(p)
+        else if (p.activity_level === 'stale') acc.stale.push(p)
+      } else {
+        acc.noGit.push(p)
+      }
+      if (p.dirty_files > 0) acc.dirtyCount++
+      return acc
+    },
+    { gitRepos: [] as any[], active: [] as any[], recent: [] as any[], stale: [] as any[], noGit: [] as any[], dirtyCount: 0 }
+  )
 
   return (
     <Panel title="Projects" className="col-span-full">
       {/* Summary line — matching TUI */}
-      <div className="text-[12px] mb-3">
+      <div className="text-[13px] mb-3">
         <span className="font-bold">{all.length}</span> projects
         <span className="mx-2" style={{ color: 'var(--hud-text-dim)' }}>│</span>
         <span className="font-bold">{gitRepos.length}</span> git repos
@@ -71,13 +80,13 @@ export default function ProjectsPanel() {
         <span style={{ color: dirtyCount > 0 ? 'var(--hud-warning)' : 'var(--hud-text-dim)' }}>{dirtyCount} dirty</span>
       </div>
       {data.projects_dir && (
-        <div className="text-[11px] mb-3" style={{ color: 'var(--hud-text-dim)' }}>{data.projects_dir}</div>
+        <div className="text-[13px] mb-3" style={{ color: 'var(--hud-text-dim)' }}>{data.projects_dir}</div>
       )}
 
       {/* ACTIVE */}
       {active.length > 0 && (
         <div className="mb-3">
-          <div className="text-[11px] font-bold mb-2" style={{ color: 'var(--hud-success)' }}>▶ ACTIVE</div>
+          <div className="text-[13px] font-bold mb-2" style={{ color: 'var(--hud-success)' }}>▶ ACTIVE</div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {active.map((p: any) => <ProjectCard key={p.name} p={p} />)}
           </div>
@@ -87,7 +96,7 @@ export default function ProjectsPanel() {
       {/* RECENT */}
       {recent.length > 0 && (
         <div className="mb-3">
-          <div className="text-[11px] font-bold mb-2" style={{ color: 'var(--hud-warning)' }}>◆ RECENT</div>
+          <div className="text-[13px] font-bold mb-2" style={{ color: 'var(--hud-warning)' }}>◆ RECENT</div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {recent.map((p: any) => <ProjectCard key={p.name} p={p} />)}
           </div>
@@ -97,10 +106,10 @@ export default function ProjectsPanel() {
       {/* STALE */}
       {stale.length > 0 && (
         <div className="mb-3">
-          <div className="text-[11px] mb-2" style={{ color: 'var(--hud-text-dim)' }}>◇ STALE</div>
+          <div className="text-[13px] mb-2" style={{ color: 'var(--hud-text-dim)' }}>◇ STALE</div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-1">
             {stale.map((p: any) => (
-              <div key={p.name} className="text-[11px] py-0.5 truncate" style={{ color: 'var(--hud-text-dim)' }}>
+              <div key={p.name} className="text-[13px] py-0.5 truncate" style={{ color: 'var(--hud-text-dim)' }}>
                 {p.name} ({p.branch}){p.dirty_files > 0 && <span style={{ color: 'var(--hud-error)' }}> ({p.dirty_files})</span>}
                 {p.last_commit_ago && <span> — {p.last_commit_ago}</span>}
               </div>
@@ -112,10 +121,10 @@ export default function ProjectsPanel() {
       {/* NO GIT */}
       {noGit.length > 0 && (
         <div>
-          <div className="text-[11px] mb-2" style={{ color: 'var(--hud-text-dim)' }}>─ NO GIT</div>
+          <div className="text-[13px] mb-2" style={{ color: 'var(--hud-text-dim)' }}>─ NO GIT</div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-1">
             {noGit.map((p: any) => (
-              <div key={p.name} className="text-[11px] py-0.5 truncate" style={{ color: 'var(--hud-text-dim)' }}>
+              <div key={p.name} className="text-[13px] py-0.5 truncate" style={{ color: 'var(--hud-text-dim)' }}>
                 {p.name}{p.languages?.length > 0 && <span> [{p.languages.join(', ')}]</span>}
               </div>
             ))}

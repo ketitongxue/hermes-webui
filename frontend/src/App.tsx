@@ -87,7 +87,7 @@ export default function App() {
       </main>
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-3 py-0.5 text-[10px] border-t shrink-0"
+      <div className="flex items-center justify-between px-3 py-0.5 text-[13px] border-t shrink-0"
            style={{ borderColor: 'var(--hud-border)', color: 'var(--hud-text-dim)', background: 'var(--hud-bg-surface)' }}>
         <span>☤ hermes-hudui v0.1.0</span>
         <span className="hidden sm:inline">

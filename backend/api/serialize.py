@@ -19,7 +19,7 @@ def to_dict(obj: Any) -> Any:
             if isinstance(getattr(type(obj), name, None), property):
                 try:
                     result[name] = to_dict(getattr(obj, name))
-                except Exception:
+                except (AttributeError, TypeError, ValueError):
                     pass
         return result
     elif isinstance(obj, datetime):

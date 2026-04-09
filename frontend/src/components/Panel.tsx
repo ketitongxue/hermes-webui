@@ -4,60 +4,15 @@ interface PanelProps {
   title: string
   children: ReactNode
   className?: string
-  isLoading?: boolean
-  error?: Error | null
 }
 
-export default function Panel({ title, children, className = '', isLoading, error }: PanelProps) {
+export default function Panel({ title, children, className = '' }: PanelProps) {
   return (
     <div className={`hud-panel ${className}`}>
       <div className="hud-panel-title">{title}</div>
       <div className="hud-panel-content">
-        {isLoading ? (
-          <div className="glow text-[12px] animate-pulse py-4 text-center" style={{ color: 'var(--hud-primary)' }}>
-            Loading...
-          </div>
-        ) : error ? (
-          <div className="text-[12px] py-2" style={{ color: 'var(--hud-error)' }}>
-            <div className="mb-1">✗ {error.message}</div>
-            <div className="text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>
-              Check backend logs. Endpoint may not be available.
-            </div>
-          </div>
-        ) : (
-          children
-        )}
+        {children}
       </div>
-    </div>
-  )
-}
-
-export function LoadingState({ label = 'Loading...' }: { label?: string }) {
-  return (
-    <div className="glow text-[12px] animate-pulse py-4 text-center" style={{ color: 'var(--hud-primary)' }}>
-      {label}
-    </div>
-  )
-}
-
-export function ErrorState({ error }: { error: Error }) {
-  return (
-    <div className="text-[12px] py-2" style={{ color: 'var(--hud-error)' }}>
-      <div className="mb-1">✗ {error.message}</div>
-      <div className="text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>
-        Check backend logs. Endpoint may not be available.
-      </div>
-    </div>
-  )
-}
-
-export function Stat({ value, label, delta }: { value: string | number; label: string; delta?: string }) {
-  const isNeg = delta?.startsWith('-')
-  return (
-    <div className="text-center">
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
-      {delta && <div className={`stat-delta ${isNeg ? 'negative' : ''}`}>{delta}</div>}
     </div>
   )
 }
@@ -67,7 +22,7 @@ export function CapacityBar({ value, max, label }: { value: number; max: number;
   const level = pct > 90 ? 'critical' : pct > 70 ? 'warn' : 'ok'
   return (
     <div className="mb-2">
-      <div className="flex justify-between text-[11px] mb-1">
+      <div className="flex justify-between text-[13px] mb-1">
         <span style={{ color: 'var(--hud-text-dim)' }}>{label}</span>
         <span>
           <span style={{ color: 'var(--hud-primary)' }}>{value.toLocaleString()}</span>

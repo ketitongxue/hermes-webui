@@ -80,7 +80,7 @@ export default function TopBar({ activeTab, onTabChange, onRefresh }: TopBarProp
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className="px-2 py-1.5 text-[11px] tracking-widest uppercase transition-all duration-150 shrink-0 cursor-pointer"
+            className="px-2 py-1.5 text-[13px] tracking-widest uppercase transition-all duration-150 shrink-0 cursor-pointer"
             style={{
               color: activeTab === tab.id ? 'var(--hud-primary)' : 'var(--hud-text-dim)',
               background: activeTab === tab.id ? 'var(--hud-bg-panel)' : 'transparent',
@@ -102,7 +102,7 @@ export default function TopBar({ activeTab, onTabChange, onRefresh }: TopBarProp
           onRefresh?.()
           setTimeout(() => setRefreshing(false), 800)
         }}
-        className="px-1.5 py-1.5 text-[11px] shrink-0 cursor-pointer transition-colors duration-200"
+        className="px-1.5 py-1.5 text-[13px] shrink-0 cursor-pointer transition-colors duration-200"
         style={{
           color: refreshing ? 'var(--hud-primary)' : 'var(--hud-text-dim)',
           textShadow: refreshing ? '0 0 8px var(--hud-primary-glow)' : 'none',
@@ -117,7 +117,7 @@ export default function TopBar({ activeTab, onTabChange, onRefresh }: TopBarProp
       <div className="relative shrink-0">
         <button
           onClick={() => setShowThemePicker(p => !p)}
-          className="px-2 py-1.5 text-[11px] tracking-wider uppercase cursor-pointer"
+          className="px-2 py-1.5 text-[13px] tracking-wider uppercase cursor-pointer"
           style={{ color: 'var(--hud-text-dim)', minHeight: '32px' }}
           title="Theme (t)"
         >
@@ -130,7 +130,7 @@ export default function TopBar({ activeTab, onTabChange, onRefresh }: TopBarProp
               <button
                 key={t.id}
                 onClick={() => { setTheme(t.id); setShowThemePicker(false) }}
-                className="block w-full text-left px-3 py-2 text-[12px] transition-colors cursor-pointer"
+                className="block w-full text-left px-3 py-2 text-[13px] transition-colors cursor-pointer"
                 style={{
                   color: theme === t.id ? 'var(--hud-primary)' : 'var(--hud-text)',
                   background: theme === t.id ? 'var(--hud-bg-hover)' : 'transparent',
@@ -143,7 +143,7 @@ export default function TopBar({ activeTab, onTabChange, onRefresh }: TopBarProp
             <div className="border-t my-1" style={{ borderColor: 'var(--hud-border)' }} />
             <button
               onClick={() => setScanlines(!scanlines)}
-              className="block w-full text-left px-3 py-2 text-[12px] cursor-pointer"
+              className="block w-full text-left px-3 py-2 text-[13px] cursor-pointer"
               style={{ color: 'var(--hud-text-dim)', minHeight: '36px' }}
             >
               {scanlines ? '▣' : '□'} Scanlines
@@ -153,7 +153,7 @@ export default function TopBar({ activeTab, onTabChange, onRefresh }: TopBarProp
       </div>
 
       {/* Clock */}
-      <span className="text-[12px] ml-2 tabular-nums shrink-0 hidden sm:inline" style={{ color: 'var(--hud-text-dim)' }}>
+      <span className="text-[13px] ml-2 tabular-nums shrink-0 hidden sm:inline" style={{ color: 'var(--hud-text-dim)' }}>
         {time.toLocaleTimeString('en-US', { hour12: false })}
       </span>
     </div>

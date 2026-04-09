@@ -2,6 +2,15 @@ import { useApi } from '../hooks/useApi'
 import Panel, { Sparkline } from './Panel'
 import { formatTokens } from '../lib/utils'
 
+function StatCard({ value, label }: { value: string | number; label: string }) {
+  return (
+    <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
+      <div className="stat-value text-[18px]">{value}</div>
+      <div className="stat-label">{label}</div>
+    </div>
+  )
+}
+
 function ModelCard({ m }: { m: any }) {
   const isFree = m.matched_pricing?.includes('local') || m.matched_pricing?.includes('free')
   const pricingColor = isFree ? 'var(--hud-success)' : 'var(--hud-accent)'
@@ -9,17 +18,17 @@ function ModelCard({ m }: { m: any }) {
   return (
     <div className="p-3" style={{ background: 'var(--hud-bg-panel)', border: '1px solid var(--hud-border)' }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="font-bold text-[12px]" style={{ color: 'var(--hud-primary)' }}>{m.model}</span>
-        <span className="text-[11px] px-1.5 py-0.5" style={{ background: 'var(--hud-bg-hover)', color: pricingColor }}>
+        <span className="font-bold text-[13px]" style={{ color: 'var(--hud-primary)' }}>{m.model}</span>
+        <span className="text-[13px] px-1.5 py-0.5" style={{ background: 'var(--hud-bg-hover)', color: pricingColor }}>
           {isFree ? 'free' : `$${m.cost.toFixed(2)}`}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-[11px] mb-2">
+      <div className="grid grid-cols-3 gap-2 text-[13px] mb-2">
         <div><span style={{ color: 'var(--hud-primary)' }}>{m.session_count}</span> <span style={{ color: 'var(--hud-text-dim)' }}>sess</span></div>
         <div><span style={{ color: 'var(--hud-primary)' }}>{m.message_count.toLocaleString()}</span> <span style={{ color: 'var(--hud-text-dim)' }}>msgs</span></div>
         <div><span style={{ color: 'var(--hud-primary)' }}>{formatTokens(m.input_tokens + m.output_tokens)}</span> <span style={{ color: 'var(--hud-text-dim)' }}>tok</span></div>
       </div>
-      <div className="text-[11px] space-y-0.5" style={{ color: 'var(--hud-text-dim)' }}>
+      <div className="text-[13px] space-y-0.5" style={{ color: 'var(--hud-text-dim)' }}>
         <div className="flex justify-between">
           <span>Input</span><span>{formatTokens(m.input_tokens)}</span>
         </div>
@@ -33,17 +42,17 @@ function ModelCard({ m }: { m: any }) {
         )}
       </div>
       {!isFree && (
-        <div className="mt-2 pt-2 text-[12px] font-bold flex justify-between" style={{ borderTop: '1px solid var(--hud-border)' }}>
+        <div className="mt-2 pt-2 text-[13px] font-bold flex justify-between" style={{ borderTop: '1px solid var(--hud-border)' }}>
           <span>Cost</span>
           <span style={{ color: 'var(--hud-accent)' }}>${m.cost.toFixed(2)}</span>
         </div>
       )}
       {isFree && (
-        <div className="mt-2 pt-2 text-[11px]" style={{ borderTop: '1px solid var(--hud-border)', color: 'var(--hud-success)' }}>
+        <div className="mt-2 pt-2 text-[13px]" style={{ borderTop: '1px solid var(--hud-border)', color: 'var(--hud-success)' }}>
           Local model — $0.00
         </div>
       )}
-      <div className="text-[10px] mt-1" style={{ color: 'var(--hud-text-dim)' }}>
+      <div className="text-[13px] mt-1" style={{ color: 'var(--hud-text-dim)' }}>
         Pricing: {m.matched_pricing}
       </div>
     </div>
@@ -54,7 +63,7 @@ export default function TokenCostsPanel() {
   const { data, isLoading } = useApi('/token-costs', 60000)
 
   if (isLoading || !data) {
-    return <Panel title="Token Costs" className="col-span-full"><div className="glow text-[12px] animate-pulse">Calculating costs...</div></Panel>
+    return <Panel title="Token Costs" className="col-span-full"><div className="glow text-[13px] animate-pulse">Calculating costs...</div></Panel>
   }
 
   const { today, all_time: allTime, by_model: byModel, daily_trend: dailyTrend } = data
@@ -77,16 +86,10 @@ export default function TokenCostsPanel() {
       {/* Today */}
       <Panel title={`Today — $${today.estimated_cost_usd.toFixed(2)}`}>
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
-            <div className="stat-value text-[18px]">{today.session_count}</div>
-            <div className="stat-label">sessions</div>
-          </div>
-          <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
-            <div className="stat-value text-[18px]">{today.message_count}</div>
-            <div className="stat-label">messages</div>
-          </div>
+          <StatCard value={today.session_count} label="sessions" />
+          <StatCard value={today.message_count} label="messages" />
         </div>
-        <div className="text-[12px] space-y-1">
+        <div className="text-[13px] space-y-1">
           <div className="flex justify-between"><span style={{ color: 'var(--hud-text-dim)' }}>Input</span><span>{formatTokens(today.input_tokens)}</span></div>
           <div className="flex justify-between"><span style={{ color: 'var(--hud-text-dim)' }}>Output</span><span>{formatTokens(today.output_tokens)}</span></div>
           <div className="flex justify-between"><span style={{ color: 'var(--hud-text-dim)' }}>Cache read</span><span>{formatTokens(today.cache_read_tokens)}</span></div>
@@ -97,32 +100,20 @@ export default function TokenCostsPanel() {
         <div className="mt-3 text-[20px] font-bold text-center" style={{ color: 'var(--hud-accent)' }}>
           ${today.estimated_cost_usd.toFixed(2)}
         </div>
-        <div className="text-[10px] text-center" style={{ color: 'var(--hud-text-dim)' }}>estimated today</div>
+        <div className="text-[13px] text-center" style={{ color: 'var(--hud-text-dim)' }}>estimated today</div>
       </Panel>
 
       {/* All time */}
       <Panel title={`All Time — $${allTime.estimated_cost_usd.toFixed(2)}`}>
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
-            <div className="stat-value text-[18px]">{allTime.session_count}</div>
-            <div className="stat-label">sessions</div>
-          </div>
-          <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
-            <div className="stat-value text-[18px]">{(allTime.message_count || 0).toLocaleString()}</div>
-            <div className="stat-label">messages</div>
-          </div>
-          <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
-            <div className="stat-value text-[18px]">{formatTokens(allTime.total_tokens)}</div>
-            <div className="stat-label">total tokens</div>
-          </div>
-          <div className="text-center p-2" style={{ background: 'var(--hud-bg-panel)' }}>
-            <div className="stat-value text-[18px]">{(allTime.tool_call_count || 0).toLocaleString()}</div>
-            <div className="stat-label">tool calls</div>
-          </div>
+          <StatCard value={allTime.session_count} label="sessions" />
+          <StatCard value={(allTime.message_count || 0).toLocaleString()} label="messages" />
+          <StatCard value={formatTokens(allTime.total_tokens)} label="total tokens" />
+          <StatCard value={(allTime.tool_call_count || 0).toLocaleString()} label="tool calls" />
         </div>
 
         {/* Cost by type */}
-        <div className="text-[12px] space-y-0.5 mt-2 pt-2" style={{ borderTop: '1px solid var(--hud-border)' }}>
+        <div className="text-[13px] space-y-0.5 mt-2 pt-2" style={{ borderTop: '1px solid var(--hud-border)' }}>
           <div className="flex justify-between"><span style={{ color: 'var(--hud-text-dim)' }}>Input cost</span><span style={{ color: 'var(--hud-primary)' }}>${totalInputCost.toFixed(2)}</span></div>
           <div className="flex justify-between"><span style={{ color: 'var(--hud-text-dim)' }}>Output cost</span><span style={{ color: 'var(--hud-accent)' }}>${totalOutputCost.toFixed(2)}</span></div>
           <div className="flex justify-between"><span style={{ color: 'var(--hud-text-dim)' }}>Cache read</span><span style={{ color: 'var(--hud-success)' }}>${totalCacheRCost.toFixed(2)}</span></div>
@@ -132,7 +123,7 @@ export default function TokenCostsPanel() {
         <div className="mt-3 text-[20px] font-bold text-center" style={{ color: 'var(--hud-accent)' }}>
           ${allTime.estimated_cost_usd.toFixed(2)}
         </div>
-        <div className="text-[10px] text-center" style={{ color: 'var(--hud-text-dim)' }}>
+        <div className="text-[13px] text-center" style={{ color: 'var(--hud-text-dim)' }}>
           estimated all-time ({byModel.length} models)
         </div>
       </Panel>
@@ -152,17 +143,17 @@ export default function TokenCostsPanel() {
       {dailyTrend.length > 0 && (
         <Panel title="Daily Cost Trend" className="col-span-full">
           <div className="mb-3">
-            <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--hud-text-dim)' }}>
+            <div className="text-[13px] uppercase tracking-wider mb-1" style={{ color: 'var(--hud-text-dim)' }}>
               Cost/day (USD)
             </div>
             <Sparkline values={costValues} width={800} height={50} />
           </div>
-          <div className="text-[12px] grid grid-cols-5 gap-1">
+          <div className="text-[13px] grid grid-cols-5 gap-1">
             {dailyTrend.slice(-10).map((d: any) => (
               <div key={d.date} className="text-center py-1" style={{ background: 'var(--hud-bg-panel)' }}>
                 <div style={{ color: 'var(--hud-text-dim)' }}>{d.date.slice(5)}</div>
                 <div style={{ color: 'var(--hud-accent)' }}>${d.cost.toFixed(2)}</div>
-                <div className="text-[11px]">{formatTokens(d.tokens)}</div>
+                <div className="text-[13px]">{formatTokens(d.tokens)}</div>
               </div>
             ))}
           </div>

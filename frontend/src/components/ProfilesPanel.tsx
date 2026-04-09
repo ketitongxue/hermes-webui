@@ -23,21 +23,21 @@ function ProfileCard({ p }: { p: any }) {
         <span className="font-bold text-[14px]" style={{ color: 'var(--hud-primary)' }}>
           {p.name}
         </span>
-        {p.is_default && <span className="text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>(default)</span>}
-        <span className="text-[11px] px-1.5 py-0.5 ml-auto"
+        {p.is_default && <span className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>(default)</span>}
+        <span className="text-[13px] px-1.5 py-0.5 ml-auto"
           style={{ background: 'var(--hud-bg-hover)', color: p.is_local ? 'var(--hud-secondary)' : 'var(--hud-accent)' }}>
           {p.is_local ? 'local' : p.provider}
         </span>
         {p.gateway_status === 'active' && (
-          <span className="text-[11px]" style={{ color: 'var(--hud-success)' }}>gateway up</span>
+          <span className="text-[13px]" style={{ color: 'var(--hud-success)' }}>gateway up</span>
         )}
         {p.server_status === 'running' && (
-          <span className="text-[11px]" style={{ color: 'var(--hud-success)' }}>server up</span>
+          <span className="text-[13px]" style={{ color: 'var(--hud-success)' }}>server up</span>
         )}
       </div>
 
       {/* Model & Backend */}
-      <div className="space-y-1 text-[12px] mb-3">
+      <div className="space-y-1 text-[13px] mb-3">
         <div className="grid grid-cols-[80px_1fr] gap-1">
           <span style={{ color: 'var(--hud-text-dim)' }}>Model</span>
           <span>
@@ -79,7 +79,7 @@ function ProfileCard({ p }: { p: any }) {
       </div>
 
       {/* Usage stats */}
-      <div className="text-[12px] mb-3 py-2" style={{ borderTop: '1px solid var(--hud-border)', borderBottom: '1px solid var(--hud-border)' }}>
+      <div className="text-[13px] mb-3 py-2" style={{ borderTop: '1px solid var(--hud-border)', borderBottom: '1px solid var(--hud-border)' }}>
         <div className="grid grid-cols-3 gap-2 mb-2">
           <div>
             <span style={{ color: 'var(--hud-primary)' }} className="font-bold">{p.session_count}</span>
@@ -109,17 +109,17 @@ function ProfileCard({ p }: { p: any }) {
       {/* Memory */}
       <div className="mb-3">
         <CapacityBar value={p.memory_chars || 0} max={p.memory_max_chars || 2200} label="MEMORY" />
-        <div className="text-[11px] mb-1" style={{ color: 'var(--hud-text-dim)' }}>
+        <div className="text-[13px] mb-1" style={{ color: 'var(--hud-text-dim)' }}>
           {p.memory_entries} entries, {p.memory_chars}/{p.memory_max_chars} chars
         </div>
         <CapacityBar value={p.user_chars || 0} max={p.user_max_chars || 1375} label="USER" />
-        <div className="text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>
+        <div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
           {p.user_entries} entries, {p.user_chars}/{p.user_max_chars} chars
         </div>
       </div>
 
       {/* Skills, Cron, Toolsets */}
-      <div className="space-y-1 text-[12px]">
+      <div className="space-y-1 text-[13px]">
         <div className="grid grid-cols-[80px_1fr] gap-1">
           <span style={{ color: 'var(--hud-text-dim)' }}>Skills</span>
           <span>
@@ -181,7 +181,7 @@ export default function ProfilesPanel() {
   const { data, isLoading } = useApi('/profiles', 30000)
 
   if (isLoading || !data) {
-    return <Panel title="Profiles" className="col-span-full"><div className="glow text-[12px] animate-pulse">Loading...</div></Panel>
+    return <Panel title="Profiles" className="col-span-full"><div className="glow text-[13px] animate-pulse">Loading...</div></Panel>
   }
 
   const profiles = data.profiles || []

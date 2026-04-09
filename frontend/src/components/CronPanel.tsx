@@ -6,12 +6,12 @@ export default function CronPanel() {
   const { data, isLoading } = useApi('/cron', 30000)
 
   if (isLoading || !data) {
-    return <Panel title="Cron Jobs" className="col-span-full"><div className="glow text-[12px] animate-pulse">Loading...</div></Panel>
+    return <Panel title="Cron Jobs" className="col-span-full"><div className="glow text-[13px] animate-pulse">Loading...</div></Panel>
   }
 
   const jobs = data.jobs || data || []
   if (!Array.isArray(jobs) || jobs.length === 0) {
-    return <Panel title="Cron Jobs" className="col-span-full"><div className="text-[12px]" style={{ color: 'var(--hud-text-dim)' }}>No cron jobs configured</div></Panel>
+    return <Panel title="Cron Jobs" className="col-span-full"><div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>No cron jobs configured</div></Panel>
   }
 
   return (
@@ -24,10 +24,10 @@ export default function CronPanel() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full shrink-0"
                   style={{ background: isActive ? 'var(--hud-success)' : 'var(--hud-text-dim)' }} />
-                <span className="font-bold text-[12px]" style={{ color: 'var(--hud-primary)' }}>
+                <span className="font-bold text-[13px]" style={{ color: 'var(--hud-primary)' }}>
                   {job.name || job.id}
                 </span>
-                <span className="text-[11px] px-1.5 py-0.5 ml-auto"
+                <span className="text-[13px] px-1.5 py-0.5 ml-auto"
                   style={{
                     background: 'var(--hud-bg-hover)',
                     color: job.state === 'scheduled' ? 'var(--hud-success)' : 'var(--hud-text-dim)'
@@ -36,7 +36,7 @@ export default function CronPanel() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[12px]">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px]">
                 <div>
                   <div className="uppercase tracking-wider" style={{ color: 'var(--hud-text-dim)', fontSize: '10px' }}>Schedule</div>
                   <div style={{ color: 'var(--hud-primary)' }}>{job.schedule_display || job.schedule || '-'}</div>
@@ -63,14 +63,14 @@ export default function CronPanel() {
               </div>
 
               {job.repeat_completed != null && (
-                <div className="mt-2 text-[11px]" style={{ color: 'var(--hud-text-dim)' }}>
+                <div className="mt-2 text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
                   Runs completed: {job.repeat_completed}{job.repeat_total ? ` / ${job.repeat_total}` : ''}
                   {job.skills?.length > 0 && <span className="ml-2">Skills: {job.skills.join(', ')}</span>}
                 </div>
               )}
 
               {job.prompt && (
-                <div className="mt-2 text-[12px] truncate" style={{ color: 'var(--hud-text-dim)' }}>
+                <div className="mt-2 text-[13px] truncate" style={{ color: 'var(--hud-text-dim)' }}>
                   {job.prompt.slice(0, 120)}...
                 </div>
               )}
