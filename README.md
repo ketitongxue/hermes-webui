@@ -69,20 +69,6 @@ cp -r dist/* ../backend/static/
 hermes-hudui
 ```
 
-## Development
-
-Two terminals:
-
-```bash
-# Terminal 1: backend with auto-reload
-hermes-hudui --dev
-
-# Terminal 2: frontend dev server (hot reload, proxies /api to :3001)
-cd frontend && npm run dev
-```
-
-Frontend dev server runs on :5173.
-
 ## Themes
 
 Four color themes, switchable with `t` key or the theme picker:
