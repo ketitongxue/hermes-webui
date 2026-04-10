@@ -25,6 +25,15 @@ Everything your agent knows about itself:
 - **Growth Delta** — snapshot diffs showing what changed
 - **Token Costs** — per-model USD cost estimates with daily trend
 
+## Real-Time Updates
+
+The HUD updates instantly when your agent's data changes. No manual refresh needed.
+
+- **WebSocket** — Live connection broadcasts changes as they happen
+- **Smart Caching** — Backend caches expensive operations (sessions, skills, patterns) with automatic invalidation when files change
+- **Silent Updates** — Data refreshes in the background without loading flashes or UI blinking
+- **Live Indicator** — "● live" badge in the status bar shows when real-time connection is active
+
 ## Quick Start
 
 ```bash
@@ -92,20 +101,29 @@ Optional CRT scanline overlay — toggle via theme picker.
 |-----|--------|
 | `1`-`9`, `0` | Switch tabs |
 | `t` | Toggle theme picker |
-| `r` | Refresh all data |
+| `r` | Refresh all data (rarely needed with WebSocket live updates) |
 | `Ctrl+K` | Command palette |
 
 ## Architecture
 
 ```
 React Frontend (Vite + SWR)
-    ↓ /api/* (proxied in dev)
+    ↓ /api/* (proxied in dev) + WebSocket /ws
 FastAPI Backend (Python)
-    ↓ collectors/*.py
+    ↓ collectors/*.py + cache + file watcher
 ~/.hermes/ (agent data files)
 ```
 
-Backend collectors read directly from `~/.hermes/` and return dataclasses. The frontend fetches from `/api/*` endpoints via SWR with auto-refresh and renders one panel component per tab.
+**Backend:**
+- **Collectors** — Read from `~/.hermes/` and return dataclasses
+- **Caching** — Intelligent cache with mtime-based invalidation (sessions: 30s, skills: 60s, patterns: 60s, profiles: 45s TTL)
+- **File Watcher** — Watches `~/.hermes/` for changes using `watchfiles`
+- **WebSocket** — Broadcasts `data_changed` events to all connected clients
+
+**Frontend:**
+- **SWR** — Fetches from `/api/*` with `keepPreviousData` for silent background updates
+- **WebSocket Hook** — Auto-reconnect with exponential backoff, triggers SWR revalidation on change events
+- **Panels** — One component per tab, shows stale data during refresh (no loading flashes)
 
 ## Token Cost Pricing
 

@@ -27,16 +27,23 @@ cd frontend && npm run dev  # frontend on :5173 (proxies /api to :3001)
 ## Project Structure
 
 ```
-backend/api/        One route file per data domain
+backend/api/              One route file per data domain
+backend/collectors/       Data collection with intelligent caching
+backend/cache.py          Caching layer with mtime invalidation
+backend/websocket_manager.py  WebSocket connection management
+backend/file_watcher.py   File system watcher for live updates
 frontend/src/components/  One panel per tab
-frontend/src/hooks/       Theme system, SWR data fetching
+frontend/src/hooks/       Theme system, SWR data fetching, WebSocket
 frontend/src/lib/         Shared formatting utilities
 ```
 
 ## Key Patterns
 
 - Backend imports hermes-hud collectors directly — never duplicate data logic
-- Each frontend panel fetches its own endpoint via `useApi('/path')`
+- **Caching** — Use `@cache_with_mtime()` decorator for expensive collectors (see `backend/collectors/sessions.py`)
+- **Real-time Updates** — File watcher detects changes → clears cache → broadcasts WebSocket event → frontend SWR revalidates silently
+- Each frontend panel fetches its own endpoint via `useApi('/path')` with `keepPreviousData: true`
+- **Silent Loading** — Check `!data` not `isLoading` to avoid loading flashes during background updates
 - Themes are CSS custom properties on `[data-theme]` attribute
 - All time formatting goes through `src/lib/utils.ts`
 
