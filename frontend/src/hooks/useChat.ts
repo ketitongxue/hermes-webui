@@ -42,6 +42,47 @@ export function useChat(sessionId: string | null) {
   const eventSourceRef = useRef<EventSource | null>(null)
   const currentAssistantMessageRef = useRef<string>('')
   const currentToolCallsRef = useRef<Record<string, ToolCall>>({})
+  // Client-side message cache: sessionId → messages
+  const messageCacheRef = useRef<Map<string, ChatMessage[]>>(new Map())
+  const prevSessionIdRef = useRef<string | null>(null)
+
+  // On session switch: save previous session's messages, restore new session's
+  useEffect(() => {
+    const prevId = prevSessionIdRef.current
+
+    // Save messages for the outgoing session
+    if (prevId && prevId !== sessionId) {
+      messageCacheRef.current.set(prevId, messages)
+    }
+
+    // Close any open stream
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
+      eventSourceRef.current = null
+    }
+
+    // Reset transient state
+    setIsStreaming(false)
+    setError(null)
+    currentAssistantMessageRef.current = ''
+    currentToolCallsRef.current = {}
+
+    // Restore cached messages for the incoming session (or empty for new sessions)
+    if (sessionId) {
+      setMessages(messageCacheRef.current.get(sessionId) ?? [])
+    } else {
+      setMessages([])
+    }
+
+    prevSessionIdRef.current = sessionId
+  }, [sessionId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep cache in sync with current messages as they arrive
+  useEffect(() => {
+    if (sessionId) {
+      messageCacheRef.current.set(sessionId, messages)
+    }
+  }, [sessionId, messages])
 
   // Cleanup EventSource on unmount
   useEffect(() => {
@@ -224,27 +265,9 @@ export function useChat(sessionId: string | null) {
   }
 
   const loadHistory = useCallback(async () => {
-    if (!sessionId) return
-
-    try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}/history`)
-      if (response.ok) {
-        const history = await response.json()
-        // Convert to ChatMessage format
-        const convertedMessages: ChatMessage[] = history.map((msg: Record<string, unknown>) => ({
-          id: msg.id as string,
-          role: msg.role as 'user' | 'assistant' | 'system' | 'tool',
-          content: msg.content as string,
-          timestamp: new Date(msg.timestamp as string),
-          toolCalls: msg.tool_calls as ToolCall[] | undefined,
-          reasoning: msg.reasoning as string | undefined,
-        }))
-        setMessages(convertedMessages)
-      }
-    } catch (err) {
-      console.error('Failed to load history:', err)
-    }
-  }, [sessionId])
+    // History is managed client-side via messageCacheRef.
+    // The backend does not persist message history, so this is a no-op.
+  }, [])
 
   const loadComposerState = useCallback(async () => {
     if (!sessionId) return
