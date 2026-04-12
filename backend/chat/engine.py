@@ -33,8 +33,6 @@ _WARNING_RE = re.compile(r'^⚠')
 def _emit_tool_events(streamer: "ChatStreamer", hermes_session_id: str) -> None:
     """Query state.db for tool calls and reasoning from the hermes session and emit SSE events."""
     db_path = Path(default_hermes_dir()) / "state.db"
-    if not db_path.exists():
-        return
     try:
         conn = sqlite3.connect(str(db_path))
         conn.row_factory = sqlite3.Row
