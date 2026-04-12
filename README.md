@@ -11,19 +11,23 @@ Same data, same soul, same dashboard that made the [TUI version](https://github.
 
 ## What It Shows
 
-Everything your agent knows about itself:
+Everything your agent knows about itself, across 13 tabs:
 
-- **Identity** — designation, substrate, runtime, days conscious, brain size
-- **What I Know** — conversations held, messages exchanged, actions taken, skills acquired
-- **What I Remember** — memory capacity bars, user profile state, corrections absorbed
-- **What I See** — API keys (present/dark), service health (alive/silent)
-- **What I'm Learning** — recently modified skills with categories
-- **What I'm Working On** — active projects with dirty file status
-- **What Runs While You Sleep** — scheduled cron jobs
-- **How I Think** — tool usage patterns with gradient bars
-- **My Rhythm** — daily activity sparkline
-- **Growth Delta** — snapshot diffs showing what changed
-- **Token Costs** — per-model USD cost estimates with daily trend
+| Tab | What You See |
+|-----|-------------|
+| **Dashboard** | Identity, conversation stats, memory bars, service health, recent skills, active projects, cron jobs, tool usage, daily sparkline |
+| **Memory** | Agent memory + user profile capacity bars, entries by category |
+| **Skills** | Category breakdown, skill details with source paths, custom skill badges |
+| **Sessions** | Session history with message/token counts, source breakdown, daily sparklines |
+| **Cron** | Scheduled jobs with schedule, last/next run, delivery target, prompt preview |
+| **Projects** | Repos grouped by activity (active/recent/stale), branch, dirty files, languages |
+| **Health** | API key status, service health with PIDs, provider/model info |
+| **Agents** | Live/idle processes, operator alert queue, recent session history |
+| **Chat** | Live chat with the agent — SSE streaming, multiple sessions, tool call visibility, reasoning display |
+| **Profiles** | Full profile cards — model, provider, gateway status, soul summary, toolsets |
+| **Costs** | Per-model USD cost estimates, daily trend, input/output/cache breakdown |
+| **Corrections** | Corrections grouped by severity (critical/major/minor) with timestamps |
+| **Patterns** | Task clusters, hourly activity heatmap, repeated prompts flagged as skill candidates |
 
 ## Real-Time Updates
 
@@ -99,9 +103,11 @@ Optional CRT scanline overlay — toggle via theme picker.
 
 | Key | Action |
 |-----|--------|
-| `1`-`9`, `0` | Switch tabs |
+| `1`–`9`, `0` | Switch tabs (Dashboard through Profiles) |
 | `t` | Toggle theme picker |
 | `Ctrl+K` | Command palette |
+
+Corrections and Patterns tabs are click-only (no hotkey — more than 10 tabs).
 
 ## Architecture
 
@@ -123,6 +129,12 @@ FastAPI Backend (Python)
 - **SWR** — Fetches from `/api/*` with `keepPreviousData` for silent background updates
 - **WebSocket Hook** — Auto-reconnect with exponential backoff, triggers SWR revalidation on change events
 - **Panels** — One component per tab, shows stale data during refresh (no loading flashes)
+- **Chat** — SSE streaming via `EventSource`, per-session message cache in `useChat.ts`, fixed-height layout with internal scroll
+
+**Chat Engine (`backend/chat/engine.py`):**
+- Singleton that spawns `hermes chat -q <message> -Q --source tool` per message
+- Streams stdout line-by-line, filters TUI box-drawing decoration via regex
+- Sessions are isolated client-side — no server-side message persistence
 
 ## Token Cost Pricing
 

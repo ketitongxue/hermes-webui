@@ -27,13 +27,15 @@ cd frontend && npm run dev  # frontend on :5173 (proxies /api to :3001)
 ## Project Structure
 
 ```
-backend/api/              One route file per data domain
+backend/api/              One route file per data domain (+ chat.py for chat)
+backend/chat/             Chat engine: engine.py (subprocess), models.py, streamer.py
 backend/collectors/       Data collection with intelligent caching
 backend/cache.py          Caching layer with mtime invalidation
 backend/websocket_manager.py  WebSocket connection management
 backend/file_watcher.py   File system watcher for live updates
 frontend/src/components/  One panel per tab
-frontend/src/hooks/       Theme system, SWR data fetching, WebSocket
+frontend/src/components/chat/  Chat sub-components (SessionSidebar, MessageThread, etc.)
+frontend/src/hooks/       Theme system, SWR data fetching, WebSocket, useChat
 frontend/src/lib/         Shared formatting utilities
 ```
 
@@ -54,6 +56,12 @@ frontend/src/lib/         Shared formatting utilities
 3. Create `frontend/src/components/MyPanel.tsx`
 4. Add it to `App.tsx` TabContent switch + GRID_CLASS
 5. Add a tab entry in `TopBar.tsx` TABS array
+
+## Chat Architecture Notes
+
+- `backend/chat/engine.py` — Singleton `ChatEngine`. Spawns `hermes chat -q <msg> -Q --source tool` per message. Streams stdout, filters box-drawing decoration via regex. No server-side message persistence.
+- `frontend/src/hooks/useChat.ts` — Manages SSE streaming, session CRUD, and a `Map<sessionId, ChatMessage[]>` message cache in a `useRef`. Saves/restores messages on session switch via `useEffect` keyed on `sessionId`.
+- Chat tab in `App.tsx` uses `flex: '1 1 0', height: 0, overflow: hidden` so the message thread scrolls internally. Do not change this to `overflow-y-auto` or the page will scroll.
 
 ## Adding a New Theme
 
