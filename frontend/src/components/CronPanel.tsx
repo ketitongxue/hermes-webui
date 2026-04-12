@@ -3,12 +3,12 @@ import { useApi } from '../hooks/useApi'
 import Panel from './Panel'
 import { timeAgo, truncate } from '../lib/utils'
 
-async function cronAction(jobId: string, action: string, method = 'POST') {
+async function cronAction(jobId: string, action: string | null, method = 'POST') {
   const url = action ? `/api/cron/${jobId}/${action}` : `/api/cron/${jobId}`
   const res = await fetch(url, { method })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.detail || `${action || 'delete'} failed`)
+    throw new Error(err.detail || `${action ?? 'delete'} failed`)
   }
 }
 
@@ -18,7 +18,7 @@ export default function CronPanel() {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const act = async (jobId: string, action: string, method = 'POST') => {
+  const act = async (jobId: string, action: string | null, method = 'POST') => {
     setBusy(`${jobId}:${action}`)
     setError(null)
     try {
@@ -108,7 +108,7 @@ export default function CronPanel() {
                   {isConfirming ? (
                     <>
                       <button
-                        onClick={() => act(job.id, 'delete', 'DELETE')}
+                        onClick={() => act(job.id, null, 'DELETE')}
                         disabled={!!busy}
                         className="px-2 py-0.5 text-[11px] cursor-pointer disabled:opacity-40"
                         style={{ background: 'var(--hud-error)', color: 'var(--hud-bg-deep)' }}
