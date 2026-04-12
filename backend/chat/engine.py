@@ -55,8 +55,9 @@ class ChatEngine:
         self._streamers: dict[str, ChatStreamer] = {}
         self._processes: dict[str, subprocess.Popen] = {}
         self._initialized = True
-        self._hermes_path = shutil.which("hermes")
-        self._cli_available = self._check_cli()
+        self._hermes_path: str | None = None
+        self._cli_available = False
+        self._refresh_cli_detection()
 
     def _check_cli(self) -> bool:
         """Check if hermes CLI is available."""
@@ -70,15 +71,26 @@ class ChatEngine:
         except Exception:
             return False
 
+    def _refresh_cli_detection(self) -> bool:
+        """Re-detect Hermes CLI availability from the current environment.
+
+        The HUD server may start before PATH/HERMES_HOME is fully populated, so
+        chat availability must be refreshable instead of being fixed at import
+        time.
+        """
+        self._hermes_path = shutil.which("hermes")
+        self._cli_available = self._check_cli()
+        return self._cli_available
+
     def is_available(self) -> bool:
         """Check if chat is available."""
-        return self._cli_available
+        return self._refresh_cli_detection()
 
     def create_session(
         self, profile: Optional[str] = None, model: Optional[str] = None
     ) -> ChatSession:
         """Create a new chat session."""
-        if not self._cli_available:
+        if not self._refresh_cli_detection():
             raise ChatNotAvailableError(
                 "Hermes CLI not available. Install hermes-agent: pip install hermes-agent"
             )

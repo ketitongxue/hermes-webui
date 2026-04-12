@@ -54,6 +54,10 @@ const GRID_CLASS: Record<TabId, string> = {
   patterns: 'grid-cols-1 lg:grid-cols-2',
 }
 
+const GRID_HEIGHT_CLASS: Partial<Record<TabId, string>> = {
+  skills: 'h-full',
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
   const [booted, setBooted] = useState(() => {
@@ -104,7 +108,7 @@ export default function App() {
         </div>
       ) : (
         <div className="overflow-y-auto" style={{ flex: '1 1 0', height: 0, minHeight: 0 }}>
-          <div className={`grid gap-2 p-2 ${GRID_CLASS[activeTab]}`}>
+          <div className={`grid min-h-full gap-2 p-2 ${GRID_HEIGHT_CLASS[activeTab] ?? ''} ${GRID_CLASS[activeTab]}`}>
             <TabContent tab={activeTab} />
           </div>
         </div>

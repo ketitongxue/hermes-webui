@@ -59,58 +59,60 @@ export default function SkillsPanel() {
   return (
     <>
       {/* Category overview */}
-      <Panel title="Skill Library" className="col-span-1">
-        <div className="flex gap-2 mb-3">
-          <span className="text-[13px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-primary)' }}>
-            {data.total} total
-          </span>
-          <span className="text-[13px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-accent)' }}>
-            {data.custom_count} custom
-          </span>
-          <span className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
-            {sorted.length} categories
-          </span>
-        </div>
+      <Panel title="Skill Library" className="col-span-1 min-h-0 h-full">
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="flex gap-2 mb-3 shrink-0">
+            <span className="text-[13px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-primary)' }}>
+              {data.total} total
+            </span>
+            <span className="text-[13px] px-2 py-0.5" style={{ background: 'var(--hud-bg-panel)', color: 'var(--hud-accent)' }}>
+              {data.custom_count} custom
+            </span>
+            <span className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
+              {sorted.length} categories
+            </span>
+          </div>
 
-        {/* Category bar chart — scannable at a glance */}
-        <div className="space-y-1 text-[13px]">
-          {sorted.map(([cat, count]) => {
-            const pct = (count / maxCount) * 100
-            const isSelected = selectedCat === cat
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCat(isSelected ? null : cat)}
-                className="flex items-center gap-2 w-full py-1 px-2 text-left transition-colors"
-                style={{
-                  background: isSelected ? 'var(--hud-bg-hover)' : 'transparent',
-                  borderLeft: isSelected ? '2px solid var(--hud-primary)' : '2px solid transparent',
-                }}
-              >
-                <span className="w-[140px] truncate" style={{ color: isSelected ? 'var(--hud-primary)' : 'var(--hud-text)' }}>
-                  {cat}
-                </span>
-                <div className="flex-1 h-[6px]" style={{ background: 'var(--hud-bg-panel)' }}>
-                  <div
-                    style={{
-                      width: `${pct}%`,
-                      height: '100%',
-                      background: isSelected ? 'var(--hud-primary)' : 'var(--hud-primary-dim)',
-                    }}
-                  />
-                </div>
-                <span className="tabular-nums w-8 text-right" style={{ color: isSelected ? 'var(--hud-primary)' : 'var(--hud-text-dim)' }}>
-                  {count}
-                </span>
-              </button>
-            )
-          })}
+          {/* Category bar chart — fill the panel height */}
+          <div className="flex min-h-0 flex-1 flex-col gap-1 text-[13px]">
+            {sorted.map(([cat, count]) => {
+              const pct = (count / maxCount) * 100
+              const isSelected = selectedCat === cat
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCat(isSelected ? null : cat)}
+                  className="flex min-h-0 flex-1 items-center gap-2 px-2 text-left transition-colors"
+                  style={{
+                    background: isSelected ? 'var(--hud-bg-hover)' : 'transparent',
+                    borderLeft: isSelected ? '2px solid var(--hud-primary)' : '2px solid transparent',
+                  }}
+                >
+                  <span className="w-[140px] truncate" style={{ color: isSelected ? 'var(--hud-primary)' : 'var(--hud-text)' }}>
+                    {cat}
+                  </span>
+                  <div className="flex-1 h-[6px]" style={{ background: 'var(--hud-bg-panel)' }}>
+                    <div
+                      style={{
+                        width: `${pct}%`,
+                        height: '100%',
+                        background: isSelected ? 'var(--hud-primary)' : 'var(--hud-primary-dim)',
+                      }}
+                    />
+                  </div>
+                  <span className="tabular-nums w-8 text-right" style={{ color: isSelected ? 'var(--hud-primary)' : 'var(--hud-text-dim)' }}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </Panel>
 
       {/* Selected category skills OR recently modified */}
       {selectedCat ? (
-        <Panel title={selectedCat}>
+        <Panel title={selectedCat} className="min-h-0 h-full">
           <div className="space-y-2">
             {catSkills.map((skill: any) => (
               <SkillItem key={skill.name} skill={skill} variant="category" />
@@ -121,7 +123,7 @@ export default function SkillsPanel() {
           </div>
         </Panel>
       ) : (
-        <Panel title="Recently Modified">
+        <Panel title="Recently Modified" className="min-h-0 h-full">
           <div className="space-y-2">
             {recentlyMod.map((skill: any) => (
               <SkillItem key={skill.name} skill={skill} variant="recent" />
