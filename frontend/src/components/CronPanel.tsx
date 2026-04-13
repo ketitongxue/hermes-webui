@@ -1,25 +1,61 @@
+import { useState } from 'react'
 import { useApi } from '../hooks/useApi'
 import Panel from './Panel'
-import { timeAgo } from '../lib/utils'
+import { timeAgo, truncate } from '../lib/utils'
+
+async function cronAction(jobId: string, action: string | null, method = 'POST') {
+  const url = action ? `/api/cron/${jobId}/${action}` : `/api/cron/${jobId}`
+  const res = await fetch(url, { method })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || `${action ?? 'delete'} failed`)
+  }
+}
 
 export default function CronPanel() {
-  const { data, isLoading } = useApi('/cron', 30000)
+  const { data, isLoading, mutate } = useApi('/cron', 30000)
+  const [confirming, setConfirming] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  // Only show loading on initial load
+  const act = async (jobId: string, action: string | null, method = 'POST') => {
+    setBusy(`${jobId}:${action}`)
+    setError(null)
+    try {
+      await cronAction(jobId, action, method)
+      await mutate()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unknown error')
+    } finally {
+      setBusy(null)
+      setConfirming(null)
+    }
+  }
+
   if (isLoading && !data) {
     return <Panel title="Cron Jobs" className="col-span-full"><div className="glow text-[13px] animate-pulse">Loading...</div></Panel>
   }
 
-  const jobs = data.jobs || data || []
+  const jobs = data?.jobs || data || []
   if (!Array.isArray(jobs) || jobs.length === 0) {
     return <Panel title="Cron Jobs" className="col-span-full"><div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>No cron jobs configured</div></Panel>
   }
 
   return (
     <Panel title="Cron Jobs" className="col-span-full">
+      {error && (
+        <div className="mb-3 px-2 py-1.5 text-[12px]" style={{ color: 'var(--hud-error)', background: 'var(--hud-bg-surface)' }}>
+          {error}
+        </div>
+      )}
       <div className="space-y-3">
         {jobs.map((job: any) => {
-          const isActive = job.enabled && !job.paused_reason
+          const isPaused = job.state === 'paused'
+          const isCompleted = job.state === 'completed'
+          const isActive = job.enabled && !isPaused && !isCompleted
+          const isBusy = (action: string) => busy === `${job.id}:${action}`
+          const isConfirming = confirming === job.id
+
           return (
             <div key={job.id} className="p-3" style={{ background: 'var(--hud-bg-panel)', border: '1px solid var(--hud-border)' }}>
               <div className="flex items-center gap-2 mb-2">
@@ -28,13 +64,76 @@ export default function CronPanel() {
                 <span className="font-bold text-[13px]" style={{ color: 'var(--hud-primary)' }}>
                   {job.name || job.id}
                 </span>
-                <span className="text-[13px] px-1.5 py-0.5 ml-auto"
+                <span className="text-[13px] px-1.5 py-0.5"
                   style={{
                     background: 'var(--hud-bg-hover)',
-                    color: job.state === 'scheduled' ? 'var(--hud-success)' : 'var(--hud-text-dim)'
+                    color: isActive ? 'var(--hud-success)' : 'var(--hud-text-dim)'
                   }}>
                   {job.state || 'unknown'}
                 </span>
+
+                <div className="ml-auto flex items-center gap-1.5">
+                  {!isCompleted && (
+                    isPaused ? (
+                      <button
+                        onClick={() => act(job.id, 'resume')}
+                        disabled={!!busy}
+                        className="px-2 py-0.5 text-[11px] cursor-pointer disabled:opacity-40"
+                        style={{ background: 'var(--hud-success)', color: 'var(--hud-bg-deep)' }}
+                      >
+                        {isBusy('resume') ? '...' : 'Resume'}
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => act(job.id, 'run')}
+                          disabled={!!busy}
+                          className="px-2 py-0.5 text-[11px] cursor-pointer disabled:opacity-40"
+                          style={{ background: 'var(--hud-accent)', color: 'var(--hud-bg-deep)' }}
+                        >
+                          {isBusy('run') ? '...' : 'Run'}
+                        </button>
+                        <button
+                          onClick={() => act(job.id, 'pause')}
+                          disabled={!!busy}
+                          className="px-2 py-0.5 text-[11px] cursor-pointer disabled:opacity-40"
+                          style={{ background: 'var(--hud-bg-hover)', color: 'var(--hud-text-dim)' }}
+                        >
+                          {isBusy('pause') ? '...' : 'Pause'}
+                        </button>
+                      </>
+                    )
+                  )}
+
+                  {isConfirming ? (
+                    <>
+                      <button
+                        onClick={() => act(job.id, null, 'DELETE')}
+                        disabled={!!busy}
+                        className="px-2 py-0.5 text-[11px] cursor-pointer disabled:opacity-40"
+                        style={{ background: 'var(--hud-error)', color: 'var(--hud-bg-deep)' }}
+                      >
+                        {isBusy('delete') ? '...' : 'Confirm'}
+                      </button>
+                      <button
+                        onClick={() => setConfirming(null)}
+                        className="px-2 py-0.5 text-[11px] cursor-pointer"
+                        style={{ background: 'var(--hud-bg-hover)', color: 'var(--hud-text-dim)' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setConfirming(job.id)}
+                      disabled={!!busy}
+                      className="px-2 py-0.5 text-[11px] cursor-pointer disabled:opacity-40"
+                      style={{ background: 'var(--hud-bg-hover)', color: 'var(--hud-error)' }}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px]">
@@ -71,8 +170,14 @@ export default function CronPanel() {
               )}
 
               {job.prompt && (
-                <div className="mt-2 text-[13px] truncate" style={{ color: 'var(--hud-text-dim)' }}>
-                  {job.prompt.slice(0, 120)}...
+                <div className="mt-2 text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
+                  {truncate(job.prompt, 120)}
+                </div>
+              )}
+
+              {job.paused_reason && (
+                <div className="mt-1 text-[12px]" style={{ color: 'var(--hud-warning)' }}>
+                  Paused: {job.paused_reason}
                 </div>
               )}
             </div>

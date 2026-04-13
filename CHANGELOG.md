@@ -2,9 +2,27 @@
 
 All notable changes to hermes-hudui are documented here.
 
-## [Unreleased]
+## [0.3.1] — 2026-04-12
 
-Nothing yet — work in progress.
+### Added
+- **Chat history persistence** — messages and sessions survive page refresh via localStorage. On server restart, backend sessions are re-created and message history migrated automatically.
+
+### Fixed
+- **Corrections tab — session corrections were always empty** — a dead REGEXP loop in the collector fired a `cursor.execute()` that SQLite can't handle (no built-in REGEXP support), throwing an `OperationalError` that silently aborted the function before the LIKE-based queries could run. Fixed by removing the dead loop, collapsing the 8 individual LIKE queries into one OR query, and moving `conn.close()` into a `finally` block.
+
+---
+
+## [0.3.0] — 2026-04-12
+
+### Added
+- **Tool call visibility** — chat responses now show tool call cards (web_search, terminal, etc.) with arguments after the response finishes
+- **Reasoning display** — agent thinking/reasoning blocks appear as collapsible "Thinking" sections in chat
+- **Memory editing** — inline edit, delete, and add entries directly in the Memory tab (both Agent Memory and User Profile)
+- **Session transcript viewer** — click any session in the Sessions tab to read the full conversation in a modal with markdown rendering and per-message token counts
+- **Session search** — search bar searches session titles and full message content (FTS), results show match type and a content snippet
+
+### Fixed
+- HUD-generated chat sessions (`--source tool`) no longer appear in the Sessions tab or search results
 
 ---
 

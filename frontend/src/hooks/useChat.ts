@@ -19,6 +19,57 @@ export interface ChatMessage {
   isStreaming?: boolean
 }
 
+// ── Types ─────────────────────────────────────────────────────────────────
+
+export interface SessionSummary {
+  id: string
+  title: string
+  backend_type: string
+  is_active: boolean
+}
+
+// ── localStorage helpers ───────────────────────────────────────────────────
+
+const MESSAGES_KEY = (id: string) => `hud-chat-msgs-${id}`
+const SESSIONS_KEY = 'hud-chat-sessions'
+
+export function saveMessages(sessionId: string, msgs: ChatMessage[]) {
+  try {
+    const serializable = msgs.map(m => ({ ...m, isStreaming: false }))
+    localStorage.setItem(MESSAGES_KEY(sessionId), JSON.stringify(serializable))
+  } catch { /* quota exceeded — silently skip */ }
+}
+
+export function loadMessages(sessionId: string): ChatMessage[] {
+  try {
+    const raw = localStorage.getItem(MESSAGES_KEY(sessionId))
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as ChatMessage[]
+    return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }))
+  } catch { return [] }
+}
+
+export function removeMessages(sessionId: string) {
+  localStorage.removeItem(MESSAGES_KEY(sessionId))
+}
+
+export function saveSessions(sessions: SessionSummary[]) {
+  try {
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions))
+  } catch { /* quota exceeded */ }
+}
+
+export function loadSavedSessions(): SessionSummary[] {
+  try {
+    const raw = localStorage.getItem(SESSIONS_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
+}
+
+export function clearSessionStorage(sessionId: string) {
+  removeMessages(sessionId)
+}
+
 export interface ComposerState {
   model: string
   isStreaming: boolean
@@ -42,6 +93,7 @@ export function useChat(sessionId: string | null) {
   const eventSourceRef = useRef<EventSource | null>(null)
   const currentAssistantMessageRef = useRef<string>('')
   const currentToolCallsRef = useRef<Record<string, ToolCall>>({})
+  const rafRef = useRef<number | null>(null)
   // Client-side message cache: sessionId → messages
   const messageCacheRef = useRef<Map<string, ChatMessage[]>>(new Map())
   const prevSessionIdRef = useRef<string | null>(null)
@@ -67,9 +119,10 @@ export function useChat(sessionId: string | null) {
     currentAssistantMessageRef.current = ''
     currentToolCallsRef.current = {}
 
-    // Restore cached messages for the incoming session (or empty for new sessions)
+    // Restore cached messages for the incoming session (memory → localStorage → empty)
     if (sessionId) {
-      setMessages(messageCacheRef.current.get(sessionId) ?? [])
+      const cached = messageCacheRef.current.get(sessionId)
+      setMessages(cached ?? loadMessages(sessionId))
     } else {
       setMessages([])
     }
@@ -77,11 +130,18 @@ export function useChat(sessionId: string | null) {
     prevSessionIdRef.current = sessionId
   }, [sessionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Keep cache in sync with current messages as they arrive
+  // Keep in-memory cache in sync on every update; debounce localStorage writes
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (sessionId) {
       messageCacheRef.current.set(sessionId, messages)
+      if (messages.length > 0) {
+        // Debounce localStorage writes to avoid thrashing during streaming
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+        saveTimerRef.current = setTimeout(() => saveMessages(sessionId, messages), 1000)
+      }
     }
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [sessionId, messages])
 
   // Cleanup EventSource on unmount
@@ -97,6 +157,10 @@ export function useChat(sessionId: string | null) {
     if (!sessionId) {
       setError('No active session')
       return
+    }
+
+    const flushRaf = () => {
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
     }
 
     setError(null)
@@ -148,13 +212,18 @@ export function useChat(sessionId: string | null) {
         switch (data.type) {
           case 'token':
             currentAssistantMessageRef.current += (data.data.text as string) || ''
-            setMessages(prev =>
-              prev.map(msg =>
-                msg.id === assistantMessageId
-                  ? { ...msg, content: currentAssistantMessageRef.current }
-                  : msg
-              )
-            )
+            if (!rafRef.current) {
+              rafRef.current = requestAnimationFrame(() => {
+                rafRef.current = null
+                setMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === assistantMessageId
+                      ? { ...msg, content: currentAssistantMessageRef.current }
+                      : msg
+                  )
+                )
+              })
+            }
             break
 
           case 'tool_start':
@@ -199,11 +268,12 @@ export function useChat(sessionId: string | null) {
             break
 
           case 'done':
+            flushRaf()
             setIsStreaming(false)
             setMessages(prev =>
               prev.map(msg =>
                 msg.id === assistantMessageId
-                  ? { ...msg, isStreaming: false }
+                  ? { ...msg, isStreaming: false, content: currentAssistantMessageRef.current }
                   : msg
               )
             )
@@ -211,6 +281,7 @@ export function useChat(sessionId: string | null) {
             break
 
           case 'error':
+            flushRaf()
             setError(data.data.message as string)
             setIsStreaming(false)
             setMessages(prev =>
@@ -226,17 +297,15 @@ export function useChat(sessionId: string | null) {
       }
 
       eventSource.onerror = () => {
-        // Connection closed or error
-        if (isStreaming) {
-          setIsStreaming(false)
-          setMessages(prev =>
-            prev.map(msg =>
-              msg.id === assistantMessageId
-                ? { ...msg, isStreaming: false }
-                : msg
-            )
+        flushRaf()
+        setIsStreaming(false)
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === assistantMessageId
+              ? { ...msg, isStreaming: false, content: msg.content || '[connection lost]' }
+              : msg
           )
-        }
+        )
         eventSource.close()
       }
 
@@ -251,7 +320,7 @@ export function useChat(sessionId: string | null) {
         )
       )
     }
-  }, [sessionId, isStreaming])
+  }, [sessionId])
 
   const updateAssistantToolCalls = (assistantMessageId: string) => {
     const toolCalls = Object.values(currentToolCallsRef.current)
@@ -273,6 +342,7 @@ export function useChat(sessionId: string | null) {
       eventSourceRef.current = null
     }
 
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
     setIsStreaming(false)
     // Mark the last assistant message as no longer streaming
     setMessages(prev =>
@@ -290,11 +360,6 @@ export function useChat(sessionId: string | null) {
       // Best-effort — SSE already closed on frontend
     }
   }, [sessionId])
-
-  const loadHistory = useCallback(async () => {
-    // History is managed client-side via messageCacheRef.
-    // The backend does not persist message history, so this is a no-op.
-  }, [])
 
   const loadComposerState = useCallback(async () => {
     if (!sessionId) return
@@ -321,7 +386,6 @@ export function useChat(sessionId: string | null) {
     error,
     sendMessage,
     cancelStream,
-    loadHistory,
     loadComposerState,
   }
 }
@@ -362,7 +426,7 @@ export function useChatAvailability() {
 }
 
 export function useChatSessions() {
-  const [sessions, setSessions] = useState<Array<{ id: string; title: string; backend_type: string; is_active: boolean }>>([])
+  const [sessions, setSessions] = useState<SessionSummary[]>(() => loadSavedSessions())
   const [loading, setLoading] = useState(false)
 
   const loadSessions = useCallback(async () => {
@@ -372,6 +436,10 @@ export function useChatSessions() {
       if (response.ok) {
         const data = await response.json()
         setSessions(data)
+        // Only persist non-empty lists — avoids clobbering saved sessions on server restart
+        if (data.length > 0) {
+          saveSessions(data)
+        }
       }
     } catch (err) {
       console.error('Failed to load sessions:', err)
@@ -404,6 +472,7 @@ export function useChatSessions() {
         method: 'DELETE',
       })
       if (response.ok) {
+        clearSessionStorage(sessionId)
         await loadSessions()
         return true
       }
