@@ -39,22 +39,51 @@ export function CapacityBar({ value, max, label }: { value: number; max: number;
 
 export function Sparkline({ values, width = 100, height = 20 }: { values: number[]; width?: number; height?: number }) {
   if (!values.length) return null
+
   const max = Math.max(...values, 1)
-  const points = values.map((v, i) => {
-    const x = (i / Math.max(values.length - 1, 1)) * width
-    const y = height - (v / max) * height
-    return `${x},${y}`
-  }).join(' ')
+  const min = Math.min(...values, 0)
+  const range = Math.max(max - min, 1)
+  const paddingX = Math.min(12, width * 0.03)
+  const paddingY = Math.min(6, height * 0.12)
+  const innerWidth = Math.max(width - paddingX * 2, 1)
+  const innerHeight = Math.max(height - paddingY * 2, 1)
+
+  const pointCoords = values.map((v, i) => {
+    const x = paddingX + (i / Math.max(values.length - 1, 1)) * innerWidth
+    const y = paddingY + (1 - (v - min) / range) * innerHeight
+    return { x, y, value: v }
+  })
+
+  const points = pointCoords.map(({ x, y }) => `${x},${y}`).join(' ')
+  const lastPoint = pointCoords[pointCoords.length - 1]
+  const pointRadius = Math.max(1.1, Math.min(1.8, height * 0.035))
 
   return (
-    <svg width={width} height={height} className="inline-block">
+    <svg
+      width="100%"
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      className="block"
+    >
       <polyline
         points={points}
         fill="none"
         stroke="var(--hud-primary)"
         strokeWidth="1.5"
         vectorEffect="non-scaling-stroke"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      {lastPoint && (
+        <circle
+          cx={lastPoint.x}
+          cy={lastPoint.y}
+          r={pointRadius}
+          fill="var(--hud-primary)"
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
     </svg>
   )
 }

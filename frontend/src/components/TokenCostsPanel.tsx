@@ -68,7 +68,8 @@ export default function TokenCostsPanel() {
   }
 
   const { today, all_time: allTime, by_model: byModel, daily_trend: dailyTrend } = data
-  const costValues = dailyTrend.map((d: any) => d.cost)
+  const recentTrend = dailyTrend.slice(-10)
+  const costValues = recentTrend.map((d: any) => d.cost)
 
   // Compute cost breakdown across all models
   let totalInputCost = 0, totalOutputCost = 0, totalCacheRCost = 0, totalCacheWCost = 0
@@ -143,15 +144,18 @@ export default function TokenCostsPanel() {
       {/* Daily trend */}
       {dailyTrend.length > 0 && (
         <Panel title="Daily Cost Trend" className="col-span-full">
-          <div className="mb-3">
+          <div className="mb-3 w-full">
             <div className="text-[13px] uppercase tracking-wider mb-1" style={{ color: 'var(--hud-text-dim)' }}>
               Cost/day (USD)
             </div>
-            <Sparkline values={costValues} width={800} height={50} />
+            <Sparkline values={costValues} height={50} />
           </div>
-          <div className="text-[13px] grid grid-cols-5 gap-1">
-            {dailyTrend.slice(-10).map((d: any) => (
-              <div key={d.date} className="text-center py-1" style={{ background: 'var(--hud-bg-panel)' }}>
+          <div
+            className="text-[13px] grid gap-1"
+            style={{ gridTemplateColumns: `repeat(${Math.max(recentTrend.length, 1)}, minmax(0, 1fr))` }}
+          >
+            {recentTrend.map((d: any) => (
+              <div key={d.date} className="text-center py-1 min-w-0" style={{ background: 'var(--hud-bg-panel)' }}>
                 <div style={{ color: 'var(--hud-text-dim)' }}>{d.date.slice(5)}</div>
                 <div style={{ color: 'var(--hud-accent)' }}>${d.cost.toFixed(2)}</div>
                 <div className="text-[13px]">{formatTokens(d.tokens)}</div>
