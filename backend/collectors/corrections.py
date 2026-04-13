@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-import json
-import os
-
-from .utils import default_hermes_dir, safe_get
 import re
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+from .utils import default_hermes_dir, safe_get
 
 
 @dataclass
@@ -62,18 +60,10 @@ CORRECTION_KEYWORDS = [
     (r"blocks patches", "minor"),
 ]
 
-# Patterns in session transcripts indicating pushback/correction
-SESSION_CORRECTION_PATTERNS = [
-    r"that'?s (?:not |in)?correct",
-    r"you'?re wrong",
-    r"no,?\s+(?:it|that|the)",
-    r"actually,?\s+",
-    r"that'?s not (?:right|true|how)",
-    r"verify (?:that|this|before)",
-    r"are you sure",
-    r"double.?check",
-    r"(?:incorrect|wrong) (?:about|recommendation|suggestion)",
-    r"push.?back",
+# Keywords used to find correction-adjacent messages in session transcripts
+SESSION_KEYWORDS = [
+    "wrong", "incorrect", "verify", "actually",
+    "not right", "not correct", "not true", "push back",
 ]
 
 
@@ -113,94 +103,67 @@ def _extract_session_corrections(hermes_dir: str) -> list[Correction]:
     if not db_path.exists():
         return corrections
 
+    conn = None
     try:
         conn = sqlite3.connect(str(db_path))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Search user messages for correction patterns
-        for pattern in SESSION_CORRECTION_PATTERNS:
-            cursor.execute("""
-                SELECT m.content, m.timestamp, s.title, s.id
-                FROM messages m
-                JOIN sessions s ON m.session_id = s.id
-                WHERE m.role = 'user'
-                AND m.content IS NOT NULL
-                AND m.content REGEXP ?
-                ORDER BY m.timestamp DESC
-                LIMIT 5
-            """, (pattern,))
-            # REGEXP might not be available, fall back to LIKE
-            pass
+        conditions = " OR ".join("m.content LIKE ?" for _ in SESSION_KEYWORDS)
+        params = [f"%{kw}%" for kw in SESSION_KEYWORDS]
+        cursor.execute(f"""
+            SELECT m.content, m.timestamp, s.title
+            FROM messages m
+            JOIN sessions s ON m.session_id = s.id
+            WHERE m.role = 'user'
+            AND ({conditions})
+            ORDER BY m.timestamp DESC
+            LIMIT 20
+        """, params)
 
-        # Simpler approach: search with FTS if available, else LIKE
-        for pattern_word in ["wrong", "incorrect", "verify", "actually", "not right", "not correct", "not true", "push back"]:
+        for row in cursor.fetchall():
             try:
-                cursor.execute("""
-                    SELECT m.content, m.timestamp, s.title, s.id
-                    FROM messages m
-                    JOIN sessions s ON m.session_id = s.id
-                    WHERE m.role = 'user'
-                    AND m.content LIKE ?
-                    ORDER BY m.timestamp DESC
-                    LIMIT 3
-                """, (f"%{pattern_word}%",))
+                content = safe_get(row, "content", "") or ""
+                if len(content) < 10 or len(content) > 2000:
+                    continue
 
-                for row in cursor.fetchall():
-                    try:
-                        content = safe_get(row, "content", "") or ""
-                        # Filter out false positives (very short or very long messages)
-                        if len(content) < 10 or len(content) > 2000:
-                            continue
+                lower = content.lower()
+                matched_kw = next((kw for kw in SESSION_KEYWORDS if kw in lower), None)
+                if matched_kw:
+                    idx = lower.find(matched_kw)
+                    start = max(0, idx - 40)
+                    end = min(len(content), idx + len(matched_kw) + 60)
+                    context = content[start:end].strip()
+                    if start > 0:
+                        context = "..." + context
+                    if end < len(content):
+                        context += "..."
+                else:
+                    context = content[:100]
 
-                        # Extract context around the keyword
-                        lower = content.lower()
-                        idx = lower.find(pattern_word.lower())
-                        if idx >= 0:
-                            start = max(0, idx - 40)
-                            end = min(len(content), idx + len(pattern_word) + 60)
-                            context = content[start:end].strip()
-                            if start > 0:
-                                context = "..." + context
-                            if end < len(content):
-                                context += "..."
-                        else:
-                            context = content[:100]
-
-                        ts_raw = safe_get(row, "timestamp")
-                        corrections.append(Correction(
-                            timestamp=datetime.fromtimestamp(ts_raw) if ts_raw else None,
-                            source="session",
-                            summary=context,
-                            detail=content[:300],
-                            session_title=safe_get(row, "title"),
-                            severity="minor",
-                        ))
-                    except Exception:
-                        continue
-            except sqlite3.OperationalError:
+                ts_raw = safe_get(row, "timestamp")
+                corrections.append(Correction(
+                    timestamp=datetime.fromtimestamp(ts_raw) if ts_raw else None,
+                    source="session",
+                    summary=context,
+                    detail=content[:300],
+                    session_title=safe_get(row, "title"),
+                    severity="minor",
+                ))
+            except Exception:
                 continue
-
-        conn.close()
     except Exception:
         pass
+    finally:
+        if conn:
+            conn.close()
 
-    # Deduplicate by summary
-    seen = set()
-    unique = []
-    for c in corrections:
-        key = c.summary[:50]
-        if key not in seen:
-            seen.add(key)
-            unique.append(c)
-
-    return unique
+    return corrections
 
 
 def collect_corrections(hermes_dir: str | None = None) -> CorrectionsState:
     """Collect all correction events."""
-    if hermes_dir is None:
-        hermes_dir = default_hermes_dir(hermes_dir)
+    hermes_dir = default_hermes_dir(hermes_dir)
 
     corrections = []
     corrections.extend(_extract_memory_corrections(hermes_dir))
