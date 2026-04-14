@@ -32,6 +32,10 @@ source venv/bin/activate && hermes-hudui
 
 Updates in real-time via WebSocket. No manual refresh needed.
 
+## Language Support
+
+English (default) and Chinese. Click the language toggle at the far right of the header bar to switch. The choice persists to localStorage. When set to Chinese, chat responses from your agent also come back in Chinese.
+
 ## Themes
 
 Four themes switchable with `t`: **Neural Awakening** (cyan), **Blade Runner** (amber), **fsociety** (green), **Anime** (purple). Optional CRT scanlines.

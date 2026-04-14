@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useTheme, THEMES } from '../hooks/useTheme'
+import { useI18n } from '../i18n'
 
 export const TABS = [
-  { id: 'dashboard', label: 'Dashboard', key: '1' },
-  { id: 'memory', label: 'Memory', key: '2' },
-  { id: 'skills', label: 'Skills', key: '3' },
-  { id: 'sessions', label: 'Sessions', key: '4' },
-  { id: 'cron', label: 'Cron', key: '5' },
-  { id: 'projects', label: 'Projects', key: '6' },
-  { id: 'health', label: 'Health', key: '7' },
-  { id: 'agents', label: 'Agents', key: '8' },
-  { id: 'chat', label: 'Chat', key: '9' },
-  { id: 'profiles', label: 'Profiles', key: '0' },
-  { id: 'token-costs', label: 'Costs', key: null },  // Click only, no hotkey
-  { id: 'corrections', label: 'Corrections', key: null },
-  { id: 'patterns', label: 'Patterns', key: null },
+  { id: 'dashboard', labelKey: 'tab.dashboard', key: '1' },
+  { id: 'memory', labelKey: 'tab.memory', key: '2' },
+  { id: 'skills', labelKey: 'tab.skills', key: '3' },
+  { id: 'sessions', labelKey: 'tab.sessions', key: '4' },
+  { id: 'cron', labelKey: 'tab.cron', key: '5' },
+  { id: 'projects', labelKey: 'tab.projects', key: '6' },
+  { id: 'health', labelKey: 'tab.health', key: '7' },
+  { id: 'agents', labelKey: 'tab.agents', key: '8' },
+  { id: 'chat', labelKey: 'tab.chat', key: '9' },
+  { id: 'profiles', labelKey: 'tab.profiles', key: '0' },
+  { id: 'token-costs', labelKey: 'tab.token-costs', key: null },
+  { id: 'corrections', labelKey: 'tab.corrections', key: null },
+  { id: 'patterns', labelKey: 'tab.patterns', key: null },
 ] as const
 
 export type TabId = typeof TABS[number]['id']
@@ -26,6 +27,7 @@ interface TopBarProps {
 
 export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
   const { theme, setTheme, scanlines, setScanlines } = useTheme()
+  const { t, lang, setLang } = useI18n()
   const [showThemePicker, setShowThemePicker] = useState(false)
   const [time, setTime] = useState(new Date())
 
@@ -87,7 +89,7 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
             }}
           >
             {tab.key && <span className="opacity-40 mr-1">{tab.key}</span>}
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
@@ -105,18 +107,18 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
         {showThemePicker && (
           <div className="absolute right-0 top-full mt-1 z-50 py-1 min-w-[180px]"
                style={{ background: 'var(--hud-bg-panel)', border: '1px solid var(--hud-border)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
-            {THEMES.map(t => (
+            {THEMES.map(themeItem => (
               <button
-                key={t.id}
-                onClick={() => { setTheme(t.id); setShowThemePicker(false) }}
+                key={themeItem.id}
+                onClick={() => { setTheme(themeItem.id); setShowThemePicker(false) }}
                 className="block w-full text-left px-3 py-2 text-[13px] transition-colors cursor-pointer"
                 style={{
-                  color: theme === t.id ? 'var(--hud-primary)' : 'var(--hud-text)',
-                  background: theme === t.id ? 'var(--hud-bg-hover)' : 'transparent',
+                  color: theme === themeItem.id ? 'var(--hud-primary)' : 'var(--hud-text)',
+                  background: theme === themeItem.id ? 'var(--hud-bg-hover)' : 'transparent',
                   minHeight: '36px',
                 }}
               >
-                {t.icon} {t.label}
+                {themeItem.icon} {t(themeItem.labelKey as any)}
               </button>
             ))}
             <div className="border-t my-1" style={{ borderColor: 'var(--hud-border)' }} />
@@ -125,7 +127,7 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
               className="block w-full text-left px-3 py-2 text-[13px] cursor-pointer"
               style={{ color: 'var(--hud-text-dim)', minHeight: '36px' }}
             >
-              {scanlines ? '▣' : '□'} Scanlines
+              {scanlines ? '▣' : '□'} {t('theme.scanlines')}
             </button>
           </div>
         )}
@@ -135,6 +137,20 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
       <span className="text-[13px] ml-2 tabular-nums shrink-0 hidden sm:inline" style={{ color: 'var(--hud-text-dim)' }}>
         {time.toLocaleTimeString('en-US', { hour12: false })}
       </span>
+
+      <button
+        onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+        className="ml-2 px-2 py-0.5 text-[12px] font-bold tracking-wider cursor-pointer shrink-0"
+        style={{
+          color: 'var(--hud-primary)',
+          border: '1px solid var(--hud-primary)',
+          background: 'transparent',
+          minHeight: '24px',
+        }}
+        title={lang === 'en' ? 'Switch to Chinese' : '切换到英文'}
+      >
+        {lang === 'en' ? '中文' : 'EN'}
+      </button>
     </div>
   )
 }
