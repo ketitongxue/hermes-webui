@@ -3,10 +3,11 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { I18nProvider } from './i18n'
+import { DEFAULT_THEME } from './hooks/useTheme'
 
 // Set default theme before render to avoid flash
 if (!document.documentElement.getAttribute('data-theme')) {
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('hud-theme') || 'ai')
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('hud-theme') || DEFAULT_THEME)
 }
 
 createRoot(document.getElementById('root')!).render(

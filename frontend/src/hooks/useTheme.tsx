@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 
-export type ThemeId = 'ai' | 'blade-runner' | 'fsociety' | 'anime'
+export type ThemeId = 'light' | 'ai' | 'blade-runner' | 'fsociety' | 'anime'
+
+export const DEFAULT_THEME: ThemeId = 'light'
 
 interface ThemeContextValue {
   theme: ThemeId
@@ -10,13 +12,14 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'ai',
+  theme: DEFAULT_THEME,
   setTheme: () => {},
   scanlines: false,
   setScanlines: () => {},
 })
 
 export const THEMES: { id: ThemeId; labelKey: string; icon: string }[] = [
+  { id: 'light', labelKey: 'theme.light', icon: '◐' },
   { id: 'ai', labelKey: 'theme.neuralAwakening', icon: '◆' },
   { id: 'blade-runner', labelKey: 'theme.bladeRunner', icon: '◈' },
   { id: 'fsociety', labelKey: 'theme.fsociety', icon: '▣' },
@@ -25,7 +28,7 @@ export const THEMES: { id: ThemeId; labelKey: string; icon: string }[] = [
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeId>(() => {
-    return (localStorage.getItem('hud-theme') as ThemeId) || 'ai'
+    return (localStorage.getItem('hud-theme') as ThemeId) || DEFAULT_THEME
   })
   const [scanlines, setScanlinesState] = useState(() => {
     return localStorage.getItem('hud-scanlines') === 'true'
@@ -47,8 +50,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, scanlines, setScanlines }}>
-      <div className={scanlines ? 'scanlines' : ''} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {children}
+      <div className={scanlines ? 'scanlines' : ''} style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+        <div className="noise-overlay" />
+        <div className="warm-glow" />
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
       </div>
     </ThemeContext.Provider>
   )

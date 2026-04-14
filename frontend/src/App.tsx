@@ -117,8 +117,12 @@ export default function App() {
       )}
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-3 py-0.5 text-[13px] border-t shrink-0"
-           style={{ borderColor: 'var(--hud-border)', color: 'var(--hud-text-dim)', background: 'var(--hud-bg-surface)' }}>
+      <div className="flex items-center justify-between px-4 py-2 text-xs border-t shrink-0 backdrop-blur-sm"
+           style={{
+             borderColor: 'var(--hud-border)',
+             color: 'var(--hud-text-dim)',
+             background: 'var(--hud-footer-bg)',
+           }}>
         <span className="flex items-center gap-2">
           ☤ {t('boot.version')} v0.4.0
           {/* WebSocket status indicator */}

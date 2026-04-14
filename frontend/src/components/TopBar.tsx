@@ -67,55 +67,86 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
   }, [onTabChange])
 
   return (
-    <div className="flex items-center gap-1 px-3 py-1.5 border-b"
-         style={{ borderColor: 'var(--hud-border)', background: 'var(--hud-bg-surface)' }}>
-      {/* Logo */}
-      <span className="gradient-text font-bold text-[13px] mr-3 tracking-wider cursor-pointer shrink-0"
-            onClick={() => onTabChange('dashboard')}>☤ HERMES</span>
+    <div
+      className="flex items-center gap-3 px-4 py-2 border-b backdrop-blur-md"
+      style={{
+        borderColor: 'var(--hud-border)',
+        background: 'var(--hud-topbar-bg)',
+        boxShadow: 'var(--hud-topbar-shadow)',
+      }}
+    >
+      <button
+        type="button"
+        className="flex items-center gap-2.5 shrink-0 cursor-pointer"
+        onClick={() => onTabChange('dashboard')}
+        title="Hermes HUD"
+      >
+        <span
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold"
+          style={{
+            background: 'var(--hud-primary)',
+            color: 'var(--hud-primary-contrast)',
+            boxShadow: '0 10px 24px -14px var(--hud-primary-glow)',
+          }}
+        >
+          H
+        </span>
+        <span className="text-sm font-semibold tracking-tight" style={{ color: 'var(--hud-text)' }}>
+          Hermes HUD
+        </span>
+      </button>
 
-      {/* Tabs */}
-      <div className="flex gap-0.5 flex-1 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex gap-1 flex-1 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className="px-2 py-1.5 text-[13px] tracking-widest uppercase transition-all duration-150 shrink-0 cursor-pointer"
+            className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150 shrink-0 cursor-pointer"
             style={{
-              color: activeTab === tab.id ? 'var(--hud-primary)' : 'var(--hud-text-dim)',
-              background: activeTab === tab.id ? 'var(--hud-bg-panel)' : 'transparent',
-              borderBottom: activeTab === tab.id ? '2px solid var(--hud-primary)' : '2px solid transparent',
-              textShadow: activeTab === tab.id ? '0 0 8px var(--hud-primary-glow)' : 'none',
-              minHeight: '32px',
+              color: activeTab === tab.id ? 'var(--hud-text)' : 'var(--hud-text-dim)',
+              background: activeTab === tab.id ? 'var(--hud-bg-hover)' : 'transparent',
+              border: `1px solid ${activeTab === tab.id ? 'var(--hud-border-bright)' : 'transparent'}`,
+              minHeight: '34px',
             }}
           >
-            {tab.key && <span className="opacity-40 mr-1">{tab.key}</span>}
+            {tab.key && <span className="opacity-45 mr-1.5">{tab.key}</span>}
             {t(tab.labelKey)}
           </button>
         ))}
       </div>
 
-      {/* Theme picker */}
       <div className="relative shrink-0">
         <button
           onClick={() => setShowThemePicker(p => !p)}
-          className="px-2 py-1.5 text-[13px] tracking-wider uppercase cursor-pointer"
-          style={{ color: 'var(--hud-text-dim)', minHeight: '32px' }}
+          className="px-3 py-1.5 text-sm font-medium rounded-lg cursor-pointer border"
+          style={{
+            color: 'var(--hud-text-dim)',
+            minHeight: '34px',
+            borderColor: 'var(--hud-border)',
+            background: 'var(--hud-bg-panel)',
+          }}
           title="Theme (t)"
         >
-          ◆
+          {THEMES.find(themeItem => themeItem.id === theme)?.icon ?? '◐'}
         </button>
         {showThemePicker && (
-          <div className="absolute right-0 top-full mt-1 z-50 py-1 min-w-[180px]"
-               style={{ background: 'var(--hud-bg-panel)', border: '1px solid var(--hud-border)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+          <div
+            className="absolute right-0 top-full mt-2 z-50 py-1 min-w-[200px] rounded-xl"
+            style={{
+              background: 'var(--hud-bg-panel)',
+              border: '1px solid var(--hud-border)',
+              boxShadow: 'var(--hud-popover-shadow)',
+            }}
+          >
             {THEMES.map(themeItem => (
               <button
                 key={themeItem.id}
                 onClick={() => { setTheme(themeItem.id); setShowThemePicker(false) }}
-                className="block w-full text-left px-3 py-2 text-[13px] transition-colors cursor-pointer"
+                className="block w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer rounded-lg mx-1"
                 style={{
-                  color: theme === themeItem.id ? 'var(--hud-primary)' : 'var(--hud-text)',
+                  color: theme === themeItem.id ? 'var(--hud-text)' : 'var(--hud-text-dim)',
                   background: theme === themeItem.id ? 'var(--hud-bg-hover)' : 'transparent',
-                  minHeight: '36px',
+                  minHeight: '38px',
                 }}
               >
                 {themeItem.icon} {t(themeItem.labelKey as any)}
@@ -124,8 +155,12 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
             <div className="border-t my-1" style={{ borderColor: 'var(--hud-border)' }} />
             <button
               onClick={() => setScanlines(!scanlines)}
-              className="block w-full text-left px-3 py-2 text-[13px] cursor-pointer"
-              style={{ color: 'var(--hud-text-dim)', minHeight: '36px' }}
+              className="block w-full text-left px-3 py-2 text-sm cursor-pointer rounded-lg mx-1"
+              style={{
+                color: 'var(--hud-text-dim)',
+                minHeight: '38px',
+                background: 'transparent',
+              }}
             >
               {scanlines ? '▣' : '□'} {t('theme.scanlines')}
             </button>
@@ -133,19 +168,18 @@ export default function TopBar({ activeTab, onTabChange }: TopBarProps) {
         )}
       </div>
 
-      {/* Clock */}
-      <span className="text-[13px] ml-2 tabular-nums shrink-0 hidden sm:inline" style={{ color: 'var(--hud-text-dim)' }}>
+      <span className="text-sm ml-1 tabular-nums shrink-0 hidden sm:inline" style={{ color: 'var(--hud-text-dim)' }}>
         {time.toLocaleTimeString('en-US', { hour12: false })}
       </span>
 
       <button
         onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-        className="ml-2 px-2 py-0.5 text-[12px] font-bold tracking-wider cursor-pointer shrink-0"
+        className="ml-1 px-2.5 py-1 text-xs font-semibold rounded-lg cursor-pointer shrink-0 border"
         style={{
           color: 'var(--hud-primary)',
-          border: '1px solid var(--hud-primary)',
-          background: 'transparent',
-          minHeight: '24px',
+          borderColor: 'var(--hud-border-bright)',
+          background: 'var(--hud-bg-panel)',
+          minHeight: '30px',
         }}
         title={lang === 'en' ? 'Switch to Chinese' : '切换到英文'}
       >

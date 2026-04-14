@@ -321,6 +321,7 @@ export const translations = {
     // Theme
     'theme.title': 'Theme',
     'theme.scanlines': 'Scanlines',
+    'theme.light': 'Light',
     'theme.neuralAwakening': 'Neural Awakening',
     'theme.bladeRunner': 'Blade Runner',
     'theme.fsociety': 'fsociety',
@@ -650,6 +651,7 @@ export const translations = {
     // Theme
     'theme.title': '主题',
     'theme.scanlines': '扫描线',
+    'theme.light': '浅色',
     'theme.neuralAwakening': '神经网络',
     'theme.bladeRunner': '银翼杀手',
     'theme.fsociety': '黑客帝国',
