@@ -9,9 +9,15 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+# Suppress macOS MallocStackLogging warnings triggered by frequent subprocess spawning
+if sys.platform == "darwin":
+    os.environ.setdefault("MallocStackLogging", "0")
+    os.environ.setdefault("MallocLogFile", "/dev/null")
+
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.websockets import WebSocketDisconnect
 
 from .api import (
     state,
@@ -31,6 +37,7 @@ from .api import (
     token_costs,
     cache,
     chat,
+    sudo,
 )
 from .file_watcher import start_watcher, stop_watcher
 from .websocket_manager import ws_manager
@@ -69,19 +76,30 @@ app.add_middleware(
 )
 
 
+async def _static_http_only(scope, receive, send):
+    """ASGI wrapper: forward only HTTP scopes to StaticFiles.
+
+    StaticFiles asserts scope["type"] == "http" and crashes on WebSocket
+    scopes that leak to the catch-all mount on client disconnect.
+    """
+    if scope["type"] != "http":
+        return
+    await _static_app(scope, receive, send)
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates."""
     await ws_manager.connect(websocket)
     try:
         while True:
-            # Keep connection alive, handle ping/pong
             data = await websocket.receive_text()
-            # Echo back for heartbeat/ping
             if data == "ping":
                 await websocket.send_text("pong")
-    except Exception:
+    except WebSocketDisconnect:
         pass
+    except Exception:
+        logger.debug("WebSocket error", exc_info=True)
     finally:
         await ws_manager.disconnect(websocket)
 
@@ -104,10 +122,12 @@ app.include_router(dashboard.router, prefix="/api")
 app.include_router(token_costs.router, prefix="/api")
 app.include_router(cache.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+app.include_router(sudo.router, prefix="/api")
 
 # Serve frontend static files (after API routes so /api takes priority)
 if STATIC_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+    _static_app = StaticFiles(directory=str(STATIC_DIR), html=True)
+    app.mount("/", _static_http_only, name="static")
 
 
 def cli():

@@ -142,7 +142,8 @@ class ChatEngine:
         """Create a new chat session."""
         if not self._refresh_cli_detection():
             raise ChatNotAvailableError(
-                "Hermes CLI not available. Install hermes-agent: pip install hermes-agent"
+                "Hermes CLI not available. Run: pip install 'hermes-hudui[chat]'  "
+                "(quotes required in zsh)"
             )
 
         session_id = str(uuid.uuid4())[:8]
