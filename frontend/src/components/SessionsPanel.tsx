@@ -59,7 +59,12 @@ function TranscriptViewer({ sessionId, onClose }: { sessionId: string; onClose: 
               {t('sessions.loadingTranscript')}
             </div>
           )}
-          {!isLoading && data?.messages?.length === 0 && (
+          {!isLoading && data?.missing && (
+            <div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
+              {t('sessions.transcriptUnavailable')}
+            </div>
+          )}
+          {!isLoading && !data?.missing && data?.messages?.length === 0 && (
             <div className="text-[13px]" style={{ color: 'var(--hud-text-dim)' }}>
               {t('sessions.noMessages')}
             </div>

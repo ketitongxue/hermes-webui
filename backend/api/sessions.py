@@ -128,7 +128,14 @@ async def get_session_messages(session_id: str, limit: int = 200):
             (session_id,),
         ).fetchone()
         if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
+            return {
+                "session_id": session_id,
+                "title": session_id[:8],
+                "source": None,
+                "started_at": None,
+                "messages": [],
+                "missing": True,
+            }
 
         messages = conn.execute(
             """
